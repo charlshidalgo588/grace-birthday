@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 
 interface Photo {
   src: string
@@ -12,18 +12,11 @@ interface Milestone {
   text: string
 }
 
-/* ============================================================
-   ✏️  EDIT EVERYTHING IN THIS BLOCK TO PERSONALIZE THE SITE
-   ============================================================ */
-
-const herName = 'Sweetheart' // ✏️ her name
-const yourName = 'Me' // ✏️ your name
-
-// ✏️ her birthday — used for the live countdown. Update the year if you reuse this next year.
-const herBirthday = '2026-08-20'
+const herName = 'Graceyy'
+const yourName = 'Charls'
 
 const message = [
-  `My dearest ${herName},`,
+  `My dearest Love ${herName},`,
   `Before you is a small ritual — a seal to break, a card to open, and, waiting on the other side, everything I've been wanting to tell you.`,
   `[✏️ Edit this paragraph — write about a specific memory. The night you met, a trip you took, an ordinary Tuesday that turned out to matter.]`,
   `[✏️ Edit this paragraph — write about what you love about her, in your own words. Be specific: a habit, a laugh, a way she sees the world.]`,
@@ -32,64 +25,40 @@ const message = [
   `Forever yours, ${yourName}`,
 ]
 
-// ✏️ Be specific here — real, small details beat grand statements.
-const reasons = [
-  'The way you laugh at your own jokes before you finish telling them.',
-  'How you remember the small things I mention once and forget I said.',
-  'The way you make any place feel like home within five minutes.',
-  '[✏️ another true, specific reason]',
-  '[✏️ another true, specific reason]',
-  '[✏️ another true, specific reason]',
+const wishes = [
+  'I hope this year brings you endless happiness and opportunities.',
+  'I hope you continue chasing your dreams because I know you can achieve them.',
+  'Thank you for being such a kind, genuine, and beautiful soul.',
+  'I hope you always remember how loved and appreciated you are.',
+  'No matter how far apart we are, I hope you always feel my love for you.',
+  'Happy Birthday, my love. I hope today is as amazing as you are. ❤️',
 ]
 
-// ✏️ src paths: whatever the file's location is inside `public/`, use that
-//    same path here with a leading slash, e.g. public/photos/1.jpg -> "/photos/1.jpg"
 const photos = reactive<Photo[]>([
-  { src: '/a-dark-knight-5c.jpg', caption: '✏️ add photo 1' },
-  { src: '', caption: '✏️ add photo 2' },
-  { src: '', caption: '✏️ add photo 3' },
-  { src: '', caption: '✏️ add photo 4' },
-  { src: '', caption: '✏️ add photo 5' },
-  { src: '', caption: '✏️ add photo 6' },
+  { src: 'public/pics/2.jpg', caption: '' },
+  { src: 'public/pics/1.jpg', caption: '' },
+  { src: 'public/pics/3.jpg', caption: '' },
+  { src: 'public/pics/4.jpg', caption: '' },
+  { src: 'public/pics/5.jpeg', caption: '' },
+  { src: 'public/pics/6.jpeg', caption: '' },
+  { src: 'public/pics/7.jpeg', caption: '' },
+  { src: 'public/pics/8.jpeg', caption: '' },
+  { src: 'public/pics/9.jpeg', caption: '' },
+  { src: 'public/pics/10.jpg', caption: '' },
+  { src: 'public/pics/11.jpeg', caption: '' },
+  { src: 'public/pics/12.jpeg', caption: '' },
 ])
 
-// ✏️ one main video — e.g. src: "/videos/main.mp4"
-//    poster is an optional thumbnail image shown before she presses play
 const mainVideo = reactive({
-  src: 'public/vids/moonlight-dark-knight-batman-moewalls-com.mp4',
+  src: `${import.meta.env.BASE_URL}public/vids/bdayvidgrace.mp4`,
   poster: '',
-  caption: '✏️ edit this caption — e.g. "a little something I put together"',
+  caption:
+    "A little something I put together. I hope you appreciate this small effort of mine and, even though we're miles apart, that you can still feel how much I love you.",
 })
 
-const musicUrl = '' // ✏️ optional, e.g. "/music/song.mp3" — leave blank to hide the button
-
-// ✏️ the wish message revealed after she blows out the candle
+const musicUrl = 'public/music/Bruno Major - Nothing (Lyric Chord Video).mp3'
 const wishText = `Whatever you wished for, I hope it finds you exactly when you need it. And if nothing crossed your mind — I'm already wishing it for you.`
 
-// ✏️ your love story, in a few chapters — as many or as few as you like
-const milestones = reactive<Milestone[]>([
-  { date: '[✏️ month, year]', title: '[✏️ "How We Met"]', text: '[✏️ a line or two about it]' },
-  {
-    date: '[✏️ month, year]',
-    title: '[✏️ "Our First Trip"]',
-    text: '[✏️ a line or two about it]',
-  },
-  {
-    date: '[✏️ month, year]',
-    title: '[✏️ "A Chapter That Mattered"]',
-    text: '[✏️ a line or two about it]',
-  },
-  { date: 'Today', title: 'Right Now', text: `And here we are, celebrating you, ${herName}.` },
-])
-
-/* ============================================================
-   🌹 Rose bouquet — a hand-built SVG bouquet of real roses.
-   Each rose is 3 rings of curved petals (dark outer → light inner)
-   around a tiny center bud, on a stem with leaves, wrapped in paper
-   with a ribbon bow. Tweak positions/colors below if you like.
-   ============================================================ */
-
-// single-petal shapes, reused (rotated) around each rose's center
 const outerPetalPath = 'M0,0 C-13,-8 -15,-22 -5,-31 C-2,-33 2,-33 5,-31 C15,-22 13,-8 0,0 Z'
 const midPetalPath = 'M0,0 C-9,-6 -10,-16 -3,-23 C-1,-25 1,-25 3,-23 C10,-16 9,-6 0,0 Z'
 const innerPetalPath = 'M0,0 C-6,-4 -6,-10 -2,-14 C-1,-15 1,-15 2,-14 C6,-10 6,-4 0,0 Z'
@@ -157,20 +126,402 @@ const leaves = [
   { x: 186, y: 200, rotate: 55, scale: 0.85, flip: true },
 ]
 
-/* ============================================================
-   State + logic — no need to touch anything below this line
-   ============================================================ */
+const fillers = [
+  { x: 58, y: 108, scale: 0.55, rotate: 8 },
+  { x: 242, y: 106, scale: 0.55, rotate: -12 },
+  { x: 38, y: 168, scale: 0.5, rotate: 20 },
+  { x: 262, y: 166, scale: 0.5, rotate: -18 },
+  { x: 150, y: 56, scale: 0.55, rotate: 0 },
+  { x: 108, y: 68, scale: 0.42, rotate: -14 },
+  { x: 192, y: 66, scale: 0.42, rotate: 14 },
+  { x: 74, y: 92, scale: 0.4, rotate: 22 },
+  { x: 226, y: 90, scale: 0.4, rotate: -22 },
+  { x: 128, y: 168, scale: 0.38, rotate: -8 },
+  { x: 172, y: 168, scale: 0.38, rotate: 8 },
+]
 
+/* ============================================================
+   💌 RIZZ GAME — "Why?"
+   A little flirty game: each card teases a line, she taps
+   "Why?" to reveal the smooth follow-up. Collect them all to
+   unlock a bonus message.
+   ✏️ Edit the teaser/line pairs to match your own sense of humor.
+   ============================================================ */
+interface RizzCard {
+  teaser: string
+  line: string
+  icon: string
+}
+
+const rizzCards = reactive<RizzCard[]>([
+  {
+    teaser: 'I still get nervous around you.',
+    line: "Because after all this time, you still give me butterflies — like it's the first day all over again.",
+    icon: '🦋',
+  },
+  {
+    teaser: "You're the last thing I think about before I sleep.",
+    line: 'And the first thing on my mind the moment I wake up.',
+    icon: '🌙',
+  },
+  {
+    teaser: 'I still get a little shy telling you this.',
+    line: 'But you stole my heart a long time ago, and I never wanted it back.',
+    icon: '🙈',
+  },
+  {
+    teaser: "My favorite place isn't a place.",
+    line: "It's wherever you are, doing absolutely nothing, and still feeling like everything.",
+    icon: '📍',
+  },
+  {
+    teaser: "I don't really need a good morning text.",
+    line: 'Because just knowing you love me is already the best part of my day.',
+    icon: '☀️',
+  },
+  {
+    teaser: "You're my favorite 'what if' that came true.",
+    line: "Because loving you turned out to be the best risk I've ever taken.",
+    icon: '💛',
+  },
+])
+
+const rizzIndex = ref(0)
+const rizzRevealed = ref(false)
+const rizzComplete = ref(false)
+const collectedIcons = reactive<string[]>([])
+
+// TS's noUncheckedIndexedAccess flags rizzCards[rizzIndex.value] as possibly
+// undefined even though the index is always in bounds by construction —
+// this computed gives every reader a guaranteed, non-undefined card.
+const currentRizz = computed<RizzCard>(
+  () => rizzCards[rizzIndex.value] ?? { teaser: '', line: '', icon: '' },
+)
+
+function revealRizz() {
+  if (rizzRevealed.value) return
+  rizzRevealed.value = true
+  collectedIcons.push(currentRizz.value.icon)
+  burstPetals(50)
+}
+
+function nextRizz() {
+  if (rizzIndex.value < rizzCards.length - 1) {
+    rizzIndex.value++
+    rizzRevealed.value = false
+  } else {
+    rizzComplete.value = true
+    burstPetals(46)
+  }
+}
+
+function resetRizz() {
+  rizzIndex.value = 0
+  rizzRevealed.value = false
+  rizzComplete.value = false
+  collectedIcons.splice(0, collectedIcons.length)
+}
+
+/* ============================================================
+   🎥 REACTION CAM — screen + webcam, combined
+   Opt-in recorder. She taps one button, grants TWO permissions
+   (share this tab/screen, then camera+mic), and we composite
+   both feeds live onto a hidden canvas: the page behind her,
+   her reaction as a small circular bubble in the corner — the
+   same way a "reaction video" looks. A small live self-view
+   bubble stays on screen while she scrolls, she taps stop
+   whenever she's done, then can preview and save the single
+   combined clip to her own device. Fully client-side — nothing
+   is uploaded anywhere.
+   ============================================================ */
+const cameraSupported = ref(
+  typeof navigator !== 'undefined' &&
+    !!navigator.mediaDevices?.getUserMedia &&
+    !!navigator.mediaDevices?.getDisplayMedia &&
+    typeof MediaRecorder !== 'undefined',
+)
+const cameraStage = ref<'idle' | 'recording' | 'reviewing'>('idle')
+const cameraStream = ref<MediaStream | null>(null) // webcam + mic
+const screenStream = ref<MediaStream | null>(null) // shared tab/screen
+const cameraError = ref('')
+const recordSeconds = ref(0)
+const recordedUrl = ref('')
+const bubblePreview = ref<HTMLVideoElement | null>(null)
+
+let mediaRecorder: MediaRecorder | null = null
+let recordedChunks: BlobPart[] = []
+let recordTimerId: ReturnType<typeof setInterval> | null = null
+const MAX_RECORD_SECONDS = 15 * 60 // 15 min safety cap while she browses
+
+// off-DOM elements used purely to feed the compositor canvas
+let screenVideoEl: HTMLVideoElement | null = null
+let webcamVideoEl: HTMLVideoElement | null = null
+let mixCanvas: HTMLCanvasElement | null = null
+let mixCtx: CanvasRenderingContext2D | null = null
+let mixRAF = 0
+
+async function startReactionRecording() {
+  cameraError.value = ''
+  try {
+    // 1. ask her to share the tab/screen so we can record what she's browsing
+    const display = await navigator.mediaDevices.getDisplayMedia({
+      video: { frameRate: 30 },
+      audio: true,
+    })
+    screenStream.value = display
+
+    // 2. then ask for camera + mic so we can capture her reaction on top
+    const cam = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    cameraStream.value = cam
+
+    cameraStage.value = 'recording'
+    await nextTick()
+
+    // live self-view bubble, mirrored, so she can see herself while browsing
+    if (bubblePreview.value) {
+      bubblePreview.value.srcObject = cam
+      await bubblePreview.value.play().catch(() => {})
+    }
+
+    setupCompositor(display, cam)
+    beginRecorder()
+
+    // if she stops sharing from the browser's native "Stop sharing" bar
+    // instead of our button, end the recording gracefully
+    display.getVideoTracks()[0]?.addEventListener('ended', () => {
+      if (cameraStage.value === 'recording') stopReactionRecording()
+    })
+  } catch (err) {
+    console.error('Screen/camera permission failed:', err)
+    cleanupStreams()
+    cameraStage.value = 'idle'
+    cameraError.value =
+      "Couldn't start recording — this needs permission to share this tab AND to use your camera. Try again and allow both."
+  }
+}
+
+// draws the shared screen as the background and the webcam as a small
+// mirrored circular bubble on top, every frame, onto a hidden canvas
+function setupCompositor(display: MediaStream, cam: MediaStream) {
+  screenVideoEl = document.createElement('video')
+  screenVideoEl.muted = true
+  screenVideoEl.playsInline = true
+  screenVideoEl.srcObject = display
+  screenVideoEl.play().catch(() => {})
+
+  webcamVideoEl = document.createElement('video')
+  webcamVideoEl.muted = true
+  webcamVideoEl.playsInline = true
+  webcamVideoEl.srcObject = cam
+  webcamVideoEl.play().catch(() => {})
+
+  mixCanvas = document.createElement('canvas')
+  mixCanvas.width = 1280
+  mixCanvas.height = 720
+  mixCtx = mixCanvas.getContext('2d')
+
+  const draw = () => {
+    if (!mixCtx || !mixCanvas) return
+    const w = mixCanvas.width
+    const h = mixCanvas.height
+
+    if (screenVideoEl && screenVideoEl.readyState >= 2) {
+      mixCtx.drawImage(screenVideoEl, 0, 0, w, h)
+    } else {
+      mixCtx.fillStyle = '#0a0210'
+      mixCtx.fillRect(0, 0, w, h)
+    }
+
+    if (webcamVideoEl && webcamVideoEl.readyState >= 2) {
+      const size = 220
+      const margin = 24
+      const x = margin
+      const y = h - size - margin
+
+      mixCtx.save()
+      mixCtx.beginPath()
+      mixCtx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2)
+      mixCtx.closePath()
+      mixCtx.clip()
+      // mirror the webcam like a selfie view
+      mixCtx.translate(x + size, y)
+      mixCtx.scale(-1, 1)
+      mixCtx.drawImage(webcamVideoEl, 0, 0, size, size)
+      mixCtx.restore()
+
+      mixCtx.beginPath()
+      mixCtx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2)
+      mixCtx.lineWidth = 4
+      mixCtx.strokeStyle = '#dba384'
+      mixCtx.stroke()
+    }
+
+    mixRAF = requestAnimationFrame(draw)
+  }
+  draw()
+}
+
+function beginRecorder() {
+  if (!mixCanvas) return
+  recordedChunks = []
+  if (recordedUrl.value) URL.revokeObjectURL(recordedUrl.value)
+  recordedUrl.value = ''
+  recordSeconds.value = 0
+
+  const canvasStream = mixCanvas.captureStream(30)
+
+  // pull in her mic audio, plus tab/system audio if she allowed sharing it,
+  // so both her reaction and whatever's playing on the page get captured
+  const audioTracks: MediaStreamTrack[] = []
+  cameraStream.value?.getAudioTracks().forEach((t) => audioTracks.push(t))
+  screenStream.value?.getAudioTracks().forEach((t) => audioTracks.push(t))
+
+  const combined = new MediaStream([...canvasStream.getVideoTracks(), ...audioTracks])
+
+  const mimeCandidates = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+  const mimeType = mimeCandidates.find((m) => MediaRecorder.isTypeSupported?.(m)) ?? ''
+
+  try {
+    mediaRecorder = mimeType
+      ? new MediaRecorder(combined, { mimeType })
+      : new MediaRecorder(combined)
+  } catch (err) {
+    console.error('MediaRecorder init failed:', err)
+    cameraError.value = 'Recording is not supported in this browser.'
+    stopReactionRecording()
+    return
+  }
+
+  mediaRecorder.ondataavailable = (e) => {
+    if (e.data && e.data.size > 0) recordedChunks.push(e.data)
+  }
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(recordedChunks, { type: mediaRecorder?.mimeType || 'video/webm' })
+    recordedUrl.value = URL.createObjectURL(blob)
+  }
+
+  mediaRecorder.start()
+
+  recordTimerId = setInterval(() => {
+    recordSeconds.value++
+    if (recordSeconds.value >= MAX_RECORD_SECONDS) stopReactionRecording()
+  }, 1000)
+}
+
+function cleanupStreams() {
+  cameraStream.value?.getTracks().forEach((t) => t.stop())
+  cameraStream.value = null
+  screenStream.value?.getTracks().forEach((t) => t.stop())
+  screenStream.value = null
+
+  if (mixRAF) cancelAnimationFrame(mixRAF)
+  mixRAF = 0
+  screenVideoEl?.pause()
+  webcamVideoEl?.pause()
+  screenVideoEl = null
+  webcamVideoEl = null
+  mixCanvas = null
+  mixCtx = null
+}
+
+function stopReactionRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop()
+  }
+  if (recordTimerId) {
+    clearInterval(recordTimerId)
+    recordTimerId = null
+  }
+  cleanupStreams()
+  cameraStage.value = 'reviewing'
+}
+
+function recordAgain() {
+  if (recordedUrl.value) URL.revokeObjectURL(recordedUrl.value)
+  recordedUrl.value = ''
+  startReactionRecording()
+}
+
+function finishReview() {
+  if (recordedUrl.value) URL.revokeObjectURL(recordedUrl.value)
+  recordedUrl.value = ''
+  recordSeconds.value = 0
+  cameraStage.value = 'idle'
+}
+
+function downloadRecording() {
+  if (!recordedUrl.value) return
+  const a = document.createElement('a')
+  a.href = recordedUrl.value
+  a.download = `birthday-reaction-${herName}.webm`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+}
+
+function formatSeconds(total: number) {
+  const m = Math.floor(total / 60)
+  const s = total % 60
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
+
+/* ============================================================
+   ⚙️ SETTINGS MENU — a single small gear icon that tucks the
+   music toggle and the reaction-recorder away, instead of
+   scattering separate floating buttons across the page.
+   ============================================================ */
+const settingsOpen = ref(false)
+
+function toggleSettings() {
+  settingsOpen.value = !settingsOpen.value
+}
+function closeSettings() {
+  settingsOpen.value = false
+}
+function handleRecordClick() {
+  closeSettings()
+  startReactionRecording()
+}
+
+/* ============================================================
+   ✨ Premium chrome — top scroll progress bar + a quiet side
+   nav so the whole page feels like one considered experience.
+   ============================================================ */
+const scrollProgress = ref(0)
+function updateScrollProgress() {
+  const doc = document.documentElement
+  const scrollTop = window.scrollY || doc.scrollTop
+  const height = doc.scrollHeight - doc.clientHeight
+  scrollProgress.value = height > 0 ? Math.min(100, (scrollTop / height) * 100) : 0
+}
+
+const navDots = [
+  { id: 'hero', label: 'Home', icon: '💌' },
+  { id: 'wishes', label: 'Wishes', icon: '🎀' },
+  { id: 'quiz', label: 'Play', icon: '😏' },
+  { id: 'gallery', label: 'Moments', icon: '📷' },
+  { id: 'film', label: 'Film', icon: '🎬' },
+  { id: 'wish', label: 'Wish', icon: '🕯️' },
+]
+const activeSection = ref('hero')
+let navObserver: IntersectionObserver | undefined
+
+function scrollToSection(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+/* ── State ── */
 const sealBroken = ref(false)
 const envelopeOpen = ref(false)
 const bookOpen = ref(false)
 const showBook = ref(false)
 const lightboxPhoto = ref<Photo | null>(null)
-const videoPlaying = ref(false)
 const musicPlaying = ref(false)
 const audio = ref<HTMLAudioElement | null>(null)
 
-// ---- bouquet reveal (shown after she reads the letter) ----
+/* cinema state */
+const cinemaPhase = ref<'idle' | 'opening' | 'playing'>('idle')
+
 const bouquetRevealed = ref(false)
 function revealBouquet() {
   if (bouquetRevealed.value) return
@@ -191,7 +542,6 @@ const hearts = Array.from({ length: 16 }, (_, i) => ({
 const firstLetter = computed(() => message[0]?.charAt(0) ?? '')
 const firstRest = computed(() => message[0]?.slice(1) ?? '')
 
-// ---- shared confetti/petal burst (used by seal + candle + bouquet reveal) ----
 const petals = ref<
   { id: string; x: number; rot: number; delay: string; hue: number; top: string }[]
 >([])
@@ -225,57 +575,73 @@ function breakSeal() {
 function openBook() {
   showBook.value = true
 }
-
 function closeBook() {
   showBook.value = false
   bookOpen.value = false
   bouquetRevealed.value = false
 }
 
-function toggleMusic() {
+/* ── Music: autoplay on load, loop forever, auto-duck for the video ── */
+
+async function playMusic() {
   if (!audio.value) return
-  if (musicPlaying.value) {
-    audio.value.pause()
-  } else {
-    audio.value.play()
+  try {
+    await audio.value.play()
+    musicPlaying.value = true
+  } catch (err) {
+    console.error('Music playback failed:', err)
+    musicPlaying.value = false
   }
-  musicPlaying.value = !musicPlaying.value
 }
 
-function playMainVideo() {
-  videoPlaying.value = true
+function pauseMusic() {
+  if (!audio.value) return
+  audio.value.pause()
+  musicPlaying.value = false
 }
 
-// ---- reasons flip cards ----
+async function toggleMusic() {
+  if (musicPlaying.value) {
+    pauseMusic()
+  } else {
+    await playMusic()
+  }
+}
+
+// One-time fallback: if the browser blocks autoplay-with-sound, start
+// music on the very first user interaction anywhere on the page.
+function unlockAutoplayOnFirstInteraction() {
+  if (musicPlaying.value) return
+  playMusic()
+}
+
+/* ── Cinema: curtain open → spotlight → video ── */
+function startCinema() {
+  if (cinemaPhase.value !== 'idle') return
+  cinemaPhase.value = 'opening'
+  // music ducks out as soon as the curtain opens
+  pauseMusic()
+  // after curtain + spotlight animation finishes, show the video
+  setTimeout(() => {
+    cinemaPhase.value = 'playing'
+  }, 2600)
+}
+
+// Video element events: music stops the instant the video plays,
+// and automatically resumes the instant the video is paused/ends.
+function onVideoPlay() {
+  pauseMusic()
+}
+function onVideoPauseOrEnd() {
+  playMusic()
+}
+
 const flipped = reactive(new Set<number>())
-function toggleReason(i: number) {
+function toggleWish(i: number) {
   if (flipped.has(i)) flipped.delete(i)
   else flipped.add(i)
 }
 
-// ---- countdown to her birthday ----
-const birthday = reactive({ days: 0, hours: 0, minutes: 0, seconds: 0, isToday: false })
-
-let timer: ReturnType<typeof setInterval> | undefined
-
-function updateBirthdayCountdown() {
-  const target = new Date(herBirthday + 'T00:00:00').getTime()
-  let diff = target - Date.now()
-  const day = 86400000,
-    hour = 3600000,
-    minute = 60000
-  birthday.isToday = diff <= 0 && diff > -day
-  if (diff < 0) diff = 0
-  birthday.days = Math.floor(diff / day)
-  diff -= birthday.days * day
-  birthday.hours = Math.floor(diff / hour)
-  diff -= birthday.hours * hour
-  birthday.minutes = Math.floor(diff / minute)
-  diff -= birthday.minutes * minute
-  birthday.seconds = Math.floor(diff / 1000)
-}
-
-// ---- candle wish ----
 const candleLit = ref(true)
 const wishGranted = ref(false)
 function blowCandle() {
@@ -287,7 +653,6 @@ function blowCandle() {
   }, 700)
 }
 
-// ---- cursor sparkle trail (desktop only) ----
 const sparkles = ref<{ id: number; x: number; y: number }[]>([])
 let lastMove = 0
 function handleMouseMove(e: MouseEvent) {
@@ -302,20 +667,51 @@ function handleMouseMove(e: MouseEvent) {
 }
 
 onMounted(() => {
-  updateBirthdayCountdown()
-  timer = setInterval(() => {
-    updateBirthdayCountdown()
-  }, 1000)
   if (window.matchMedia('(pointer: fine)').matches) {
     window.addEventListener('mousemove', handleMouseMove)
   }
+
+  // Try to autoplay the music right away.
+  playMusic()
+
+  // Fallback for browsers that block autoplay with sound: start music
+  // on the first click/tap/keypress anywhere on the page.
+  window.addEventListener('click', unlockAutoplayOnFirstInteraction, { once: true })
+  window.addEventListener('keydown', unlockAutoplayOnFirstInteraction, { once: true })
+  window.addEventListener('touchstart', unlockAutoplayOnFirstInteraction, { once: true })
+
+  // premium chrome: scroll progress + section nav highlighting
+  window.addEventListener('scroll', updateScrollProgress, { passive: true })
+  updateScrollProgress()
+
+  navObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          activeSection.value = entry.target.id
+        }
+      })
+    },
+    { rootMargin: '-40% 0px -55% 0px', threshold: 0 },
+  )
+  navDots.forEach((s) => {
+    const el = document.getElementById(s.id)
+    if (el) navObserver?.observe(el)
+  })
 })
 onUnmounted(() => {
-  if (timer) clearInterval(timer)
   window.removeEventListener('mousemove', handleMouseMove)
+  window.removeEventListener('click', unlockAutoplayOnFirstInteraction)
+  window.removeEventListener('keydown', unlockAutoplayOnFirstInteraction)
+  window.removeEventListener('touchstart', unlockAutoplayOnFirstInteraction)
+  window.removeEventListener('scroll', updateScrollProgress)
+  if (navObserver) navObserver.disconnect()
+  if (recordTimerId) clearInterval(recordTimerId)
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop()
+  cleanupStreams()
+  if (recordedUrl.value) URL.revokeObjectURL(recordedUrl.value)
 })
 
-// ---- scroll reveal directive ----
 const vReveal = {
   mounted(el: HTMLElement) {
     el.classList.add('reveal')
@@ -336,6 +732,22 @@ const vReveal = {
 </script>
 
 <template>
+  <!-- premium chrome: scroll progress + quiet side nav -->
+  <div class="scroll-progress" :style="{ width: scrollProgress + '%' }"></div>
+  <nav class="side-nav" aria-hidden="true">
+    <button
+      v-for="s in navDots"
+      :key="s.id"
+      class="side-dot"
+      :class="{ 'is-active': activeSection === s.id }"
+      @click="scrollToSection(s.id)"
+      :aria-label="s.label"
+    >
+      <span class="side-dot-core">{{ s.icon }}</span>
+      <span class="side-dot-tooltip">{{ s.label }}</span>
+    </button>
+  </nav>
+
   <div class="grain-overlay"></div>
 
   <div class="sparkle-layer">
@@ -344,7 +756,7 @@ const vReveal = {
       v-for="s in sparkles"
       :key="s.id"
       :style="{ left: s.x + 'px', top: s.y + 'px' }"
-      >✦</span
+      >💋</span
     >
   </div>
 
@@ -379,14 +791,15 @@ const vReveal = {
     </div>
   </div>
 
-  <section class="hero">
+  <!-- ── HERO ── -->
+  <section class="hero" id="hero">
     <p class="eyebrow label">a little something for</p>
-    <h1 class="hero-title">Happy Birthday</h1>
+    <h1 class="hero-title">Happy Birthday My Love</h1>
     <p class="hero-sub script" style="font-size: 1.6rem">{{ herName }}</p>
 
     <div class="envelope-wrap">
       <div class="envelope" :class="{ 'is-open': envelopeOpen, 'is-lifted': envelopeOpen }">
-        <div class="postage-stamp"><span>✦</span></div>
+        <div class="postage-stamp"><span>💋</span></div>
         <div class="card-out" v-if="envelopeOpen" @click="openBook">
           <div class="tap-hint">tap to open</div>
         </div>
@@ -407,14 +820,14 @@ const vReveal = {
 
     <p class="hint" v-if="!sealBroken">break the seal to begin</p>
     <p class="hint" v-else-if="!envelopeOpen">opening…</p>
-    <p class="hint" v-else>tap the card above ✦</p>
+    <p class="hint" v-else>tap the card above 💋</p>
   </section>
 
+  <!-- ── LETTER ── -->
   <div class="scene-backdrop" v-if="showBook" @click.self="closeBook">
     <div class="book-stage">
       <div class="book" :class="{ 'is-open': bookOpen }">
         <button class="close-scene" @click="closeBook" aria-label="Close">×</button>
-
         <div class="book-inside" v-if="bookOpen">
           <p
             class="letter-p"
@@ -433,7 +846,6 @@ const vReveal = {
           </button>
           <p class="bouquet-note script" v-else>for you, {{ herName }} — always</p>
         </div>
-
         <div class="book-cover" @click="bookOpen = true" v-show="!bookOpen">
           <div class="monogram script">{{ herName.charAt(0) }}</div>
           <div class="cover-title script">For {{ herName }}</div>
@@ -444,14 +856,9 @@ const vReveal = {
       <div class="bouquet-reveal" v-if="bouquetRevealed">
         <div class="bouquet-glow"></div>
         <svg class="bouquet-svg" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
-          <!-- paper wrap -->
           <path class="wrap-paper" d="M150,296 L252,392 L48,392 Z" />
           <path class="wrap-paper wrap-paper-fold" d="M150,296 L206,392 L94,392 Z" />
-
-          <!-- stems -->
           <path v-for="(r, i) in roses" :key="'stem' + i" class="stem" :d="r.stem" />
-
-          <!-- leaves -->
           <g
             v-for="(l, i) in leaves"
             :key="'leaf' + i"
@@ -472,8 +879,6 @@ const vReveal = {
             <path class="leaf" :d="leafPath" />
             <line class="leaf-vein" x1="3" y1="0" x2="30" y2="0" />
           </g>
-
-          <!-- ribbon -->
           <g class="ribbon" transform="translate(150,297)">
             <path class="ribbon-loop" d="M0,0 C-26,-7 -30,-23 -14,-27 C-4,-29 2,-19 0,0 Z" />
             <path class="ribbon-loop" d="M0,0 C26,-7 30,-23 14,-27 C4,-29 -2,-19 0,0 Z" />
@@ -487,8 +892,6 @@ const vReveal = {
               transform="rotate(45)"
             />
           </g>
-
-          <!-- roses -->
           <g
             v-for="(r, i) in roses"
             :key="'rose' + i"
@@ -508,84 +911,113 @@ const vReveal = {
             </g>
             <path class="rose-center" :d="centerBudPath" />
           </g>
+          <g
+            v-for="(f, i) in fillers"
+            :key="'filler' + i"
+            :transform="
+              'translate(' + f.x + ',' + f.y + ') rotate(' + f.rotate + ') scale(' + f.scale + ')'
+            "
+          >
+            <ellipse
+              v-for="n in 6"
+              :key="'fp' + n"
+              class="filler-petal"
+              :transform="'rotate(' + n * 60 + ')'"
+              cx="0"
+              cy="-7"
+              rx="2.4"
+              ry="6"
+            />
+            <circle class="filler-center" r="2.6" />
+          </g>
         </svg>
       </div>
     </div>
   </div>
 
-  <section id="countdown" v-reveal>
+  <!-- ── WISHES ── -->
+  <section id="wishes" v-reveal>
     <div class="section-head">
-      <h2>Counting Down To You</h2>
-      <p v-if="!birthday.isToday">every moment brings us closer to celebrating you</p>
-      <p v-else class="script" style="font-size: 1.5rem; color: var(--gold-light)">
-        Today is the day, {{ herName }} 🎂
-      </p>
+      <h2>My Wishes for You</h2>
+      <p>tap a card to reveal a wish</p>
     </div>
-    <div class="counter-grid">
-      <div class="counter-item">
-        <span class="counter-num">{{ birthday.days }}</span
-        ><span class="counter-label">days</span>
-      </div>
-      <div class="counter-item">
-        <span class="counter-num">{{ birthday.hours }}</span
-        ><span class="counter-label">hours</span>
-      </div>
-      <div class="counter-item">
-        <span class="counter-num">{{ birthday.minutes }}</span
-        ><span class="counter-label">minutes</span>
-      </div>
-      <div class="counter-item">
-        <span class="counter-num pulse">{{ birthday.seconds }}</span
-        ><span class="counter-label">seconds</span>
-      </div>
-    </div>
-  </section>
-
-  <section id="story" v-reveal>
-    <div class="section-head">
-      <h2>Our Love Story</h2>
-      <p>a few chapters, so far</p>
-    </div>
-    <div class="timeline">
-      <div class="timeline-item" v-for="(m, i) in milestones" :key="i" v-reveal>
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <span class="timeline-date label">{{ m.date }}</span>
-          <h3>{{ m.title }}</h3>
-          <p>{{ m.text }}</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="reasons" v-reveal>
-    <div class="section-head">
-      <h2>Reasons, Among Many</h2>
-      <p>tap a card to turn it over</p>
-    </div>
-    <div class="reasons-grid">
+    <div class="wishes-grid">
       <div
-        class="reason-card"
-        v-for="(reason, i) in reasons"
+        class="wish-card"
+        v-for="(wish, i) in wishes"
         :key="i"
         :class="{ 'is-flipped': flipped.has(i) }"
-        @click="toggleReason(i)"
+        @click="toggleWish(i)"
         :style="{ transitionDelay: i * 0.06 + 's' }"
         v-reveal
       >
-        <div class="reason-inner">
-          <div class="reason-face reason-front">
-            <span class="reason-index label">Reason {{ i + 1 }}</span>
-            <span class="reason-glyph">♡</span>
+        <div class="wish-card-inner">
+          <div class="wish-card-face wish-card-front">
+            <span class="wish-index label">Wish {{ i + 1 }}</span>
+            <span class="wish-glyph">♡</span>
           </div>
-          <div class="reason-face reason-back">
-            <p>{{ reason }}</p>
+          <div class="wish-card-face wish-card-back">
+            <p>{{ wish }}</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- ── RIZZ GAME ── -->
+  <section id="quiz" v-reveal>
+    <div class="section-head">
+      <h2>Okay, Hear Me Out…</h2>
+      <p>tap "why?" to see where I'm going with this 😏</p>
+    </div>
+
+    <div class="quiz-wrap">
+      <div class="reward-tray">
+        <div
+          class="reward-slot"
+          v-for="(c, i) in rizzCards"
+          :key="'slot' + i"
+          :class="{ 'is-filled': collectedIcons[i] }"
+        >
+          <span v-if="collectedIcons[i]">{{ collectedIcons[i] }}</span>
+          <span v-else class="reward-slot-empty">·</span>
+        </div>
+      </div>
+
+      <div class="quiz-card" v-if="!rizzComplete">
+        <span class="quiz-progress label">Line {{ rizzIndex + 1 }} / {{ rizzCards.length }}</span>
+        <h3 class="quiz-question">{{ currentRizz.teaser }}</h3>
+
+        <button class="quiz-option rizz-why-btn" v-if="!rizzRevealed" @click="revealRizz">
+          Why? 😏
+        </button>
+
+        <p class="quiz-feedback is-good rizz-line" v-else>{{ currentRizz.line }}</p>
+
+        <button class="quiz-replay-btn" v-if="rizzRevealed" @click="nextRizz">
+          {{ rizzIndex < rizzCards.length - 1 ? 'Next line →' : 'Finish' }}
+        </button>
+      </div>
+
+      <div class="quiz-card quiz-complete" v-else>
+        <div class="quiz-complete-bouquet">
+          <span
+            v-for="(icon, i) in collectedIcons"
+            :key="'r' + i"
+            :style="{ animationDelay: i * 0.12 + 's' }"
+            >{{ icon }}</span
+          >
+        </div>
+        <h3 class="quiz-question">Okay okay, I'm done being smooth 😏</h3>
+        <p class="quiz-complete-note">
+          Cheesy lines aside — none of them come close to how I actually feel about you.
+        </p>
+        <button class="quiz-replay-btn" @click="resetRizz">Play again</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── GALLERY ── -->
   <section id="gallery" v-reveal>
     <div class="section-head">
       <h2>Our Moments</h2>
@@ -616,31 +1048,108 @@ const vReveal = {
     </div>
   </section>
 
+  <!-- ══════════════════════════════════════════
+       CINEMA SECTION
+  ══════════════════════════════════════════ -->
   <section id="film" v-reveal>
     <div class="section-head">
       <h2>A Little Film for You</h2>
       <p>{{ mainVideo.caption }}</p>
     </div>
-    <div class="film-frame">
-      <video
-        v-if="videoPlaying && mainVideo.src"
-        :src="mainVideo.src"
-        class="film-video"
-        controls
-        autoplay
-      ></video>
-      <div v-else class="film-thumb" @click="playMainVideo">
-        <img v-if="mainVideo.poster" :src="mainVideo.poster" class="film-poster" alt="" />
-        <div class="play-btn big">
-          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-        </div>
-        <div v-if="!mainVideo.src" class="video-placeholder">
-          Add your video URL in the config to play it here.
+
+    <div class="cinema-room" :class="'cinema--' + cinemaPhase">
+      <!-- gold arch trim top -->
+      <div class="cinema-arch-top"></div>
+
+      <!-- wall sconces -->
+      <div class="sconces">
+        <div class="sconce" v-for="n in 6" :key="n">
+          <div class="sconce-bracket"></div>
+          <div class="sconce-bulb" :style="{ animationDelay: n * 0.35 + 's' }"></div>
         </div>
       </div>
+
+      <!-- screen + curtains -->
+      <div class="cinema-stage">
+        <!-- gold curtain rod with finials -->
+        <div class="curtain-rod">
+          <span class="rod-finial rod-finial-l"></span>
+          <span class="rod-finial rod-finial-r"></span>
+        </div>
+
+        <div class="stage-inner">
+          <!-- left curtain -->
+          <div class="curtain curtain-l" :class="{ 'curtain-open': cinemaPhase !== 'idle' }">
+            <div class="curtain-fold"></div>
+            <div class="curtain-fold"></div>
+          </div>
+          <!-- right curtain -->
+          <div class="curtain curtain-r" :class="{ 'curtain-open': cinemaPhase !== 'idle' }">
+            <div class="curtain-fold"></div>
+            <div class="curtain-fold"></div>
+          </div>
+
+          <!-- spotlight cone (shows during opening phase) -->
+          <div class="spotlight" v-if="cinemaPhase === 'opening'"></div>
+
+          <!-- the screen bezel -->
+          <div class="cinema-bezel">
+            <div class="scanlines"></div>
+            <div class="screen-glare"></div>
+            <div class="screen-vignette"></div>
+
+            <!-- IDLE: show play prompt -->
+            <div v-if="cinemaPhase === 'idle'" class="film-thumb" @click="startCinema">
+              <img v-if="mainVideo.poster" :src="mainVideo.poster" class="film-poster" alt="" />
+              <div class="cinema-play-wrap">
+                <div class="pulse-ring ring-1"></div>
+                <div class="pulse-ring ring-2"></div>
+                <div class="pulse-ring ring-3"></div>
+                <div class="play-btn big">
+                  <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                </div>
+              </div>
+              <div v-if="!mainVideo.src" class="video-placeholder">
+                Add your video URL in the config to play it here.
+              </div>
+            </div>
+
+            <!-- OPENING: curtain animation screen (dark) -->
+            <div v-else-if="cinemaPhase === 'opening'" class="film-thumb film-thumb--dark">
+              <div class="opening-text script">now showing…</div>
+            </div>
+
+            <!-- PLAYING: real video -->
+            <video
+              v-else-if="cinemaPhase === 'playing' && mainVideo.src"
+              :src="mainVideo.src"
+              class="film-video"
+              controls
+              autoplay
+              @play="onVideoPlay"
+              @pause="onVideoPauseOrEnd"
+              @ended="onVideoPauseOrEnd"
+            ></video>
+          </div>
+        </div>
+      </div>
+
+      <!-- floor fade -->
+      <div class="cinema-floor-fade"></div>
+
+      <!-- audience seat silhouettes -->
+      <div class="cinema-seats">
+        <div class="seat-row">
+          <div class="seat" v-for="n in 9" :key="n"></div>
+        </div>
+      </div>
+
+      <!-- gold arch trim bottom -->
+      <div class="cinema-arch-bottom"></div>
     </div>
   </section>
 
+  <!-- ── WISH / CANDLE ── -->
   <section id="wish" v-reveal>
     <div class="section-head">
       <h2>Make a Wish</h2>
@@ -688,10 +1197,11 @@ const vReveal = {
   </section>
 
   <footer v-reveal>
-    <span class="script">Happy Birthday, {{ herName }}. I love you.</span>
+    <span class="script">Happy Birthday, My Love {{ herName }}. I love you so much.</span>
     <p>— {{ yourName }}</p>
   </footer>
 
+  <!-- lightbox -->
   <div class="modal" v-if="lightboxPhoto" @click.self="lightboxPhoto = null">
     <button class="modal-close" @click="lightboxPhoto = null">×</button>
     <figure>
@@ -700,32 +1210,117 @@ const vReveal = {
     </figure>
   </div>
 
-  <button
-    class="music-toggle"
-    v-if="musicUrl"
-    @click="toggleMusic"
-    :class="{ 'is-playing': musicPlaying }"
-    aria-label="Toggle music"
-  >
-    <span class="eq-bar" v-for="n in 3" :key="n"></span>
-  </button>
   <audio ref="audio" :src="musicUrl" loop></audio>
+
+  <!-- ══════════════════════════════════════════
+       SETTINGS — one small gear icon holds music +
+       the reaction recorder, instead of two separate
+       floating buttons cluttering the corner.
+  ══════════════════════════════════════════ -->
+  <div class="settings-overlay" v-if="settingsOpen" @click="closeSettings"></div>
+  <div class="settings-wrap">
+    <transition name="settings-pop">
+      <div class="settings-panel" v-if="settingsOpen">
+        <div class="settings-row">
+          <span class="settings-row-icon">🎵</span>
+          <span class="settings-row-label">Music</span>
+          <button
+            class="settings-switch"
+            :class="{ 'is-on': musicPlaying }"
+            @click="toggleMusic"
+            :aria-pressed="musicPlaying"
+            aria-label="Toggle music"
+          >
+            <span class="settings-switch-knob"></span>
+          </button>
+        </div>
+
+        <div class="settings-divider" v-if="cameraSupported"></div>
+
+        <div class="settings-row" v-if="cameraSupported">
+          <span class="settings-row-icon">🎥</span>
+          <span class="settings-row-label">Record reaction</span>
+          <button
+            class="settings-action-btn"
+            @click="handleRecordClick"
+            :disabled="cameraStage !== 'idle'"
+          >
+            {{ cameraStage === 'idle' ? 'Start' : '…' }}
+          </button>
+        </div>
+
+        <p class="settings-error" v-if="cameraError">{{ cameraError }}</p>
+      </div>
+    </transition>
+
+    <button
+      class="settings-toggle"
+      :class="{ 'is-open': settingsOpen }"
+      @click="toggleSettings"
+      aria-label="Settings"
+    >
+      <svg viewBox="0 0 24 24" class="settings-gear">
+        <path
+          d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.5.5 0 0 0 .12-.65l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 0 0-.61.22L2.62 8.83a.5.5 0 0 0 .12.65l2.03 1.58c-.05.3-.07.62-.07.94 0 .32.02.64.07.94l-2.03 1.58a.5.5 0 0 0-.12.65l1.92 3.32c.14.24.42.32.61.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54a.5.5 0 0 0 .5.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.24.1.47 0 .61-.22l1.92-3.32a.5.5 0 0 0-.12-.65l-2.03-1.58ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"
+        />
+      </svg>
+    </button>
+  </div>
+
+  <!-- reaction camera: live floating bubble while she browses -->
+  <div class="camera-bubble" v-if="cameraStage === 'recording'">
+    <video ref="bubblePreview" class="camera-bubble-video" muted playsinline></video>
+    <div class="camera-bubble-rec">
+      <span class="rec-dot"></span> {{ formatSeconds(recordSeconds) }}
+    </div>
+    <button class="camera-bubble-stop" @click="stopReactionRecording" aria-label="Stop recording">
+      <span class="stop-square"></span>
+    </button>
+  </div>
+
+  <!-- reaction camera: review after stopping -->
+  <div class="camera-panel-backdrop" v-if="cameraStage === 'reviewing'" @click.self="finishReview">
+    <div class="camera-panel">
+      <button class="camera-panel-close" @click="finishReview" aria-label="Close">×</button>
+      <h3 class="camera-panel-title script">That's a wrap 🎥</h3>
+      <p class="camera-panel-sub">
+        Here's the page and your reaction together — totally yours, nothing was uploaded anywhere.
+      </p>
+
+      <div class="camera-stage">
+        <video
+          class="camera-video camera-video-playback"
+          :src="recordedUrl"
+          controls
+          playsinline
+        ></video>
+      </div>
+
+      <div class="camera-controls">
+        <button class="quiz-replay-btn" @click="downloadRecording">⬇ Save video</button>
+        <button class="quiz-replay-btn rec-secondary-btn" @click="recordAgain">Record again</button>
+        <button class="quiz-replay-btn rec-secondary-btn" @click="finishReview">Done</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
 :root {
-  --wine: #8c1c4d; /* deep romantic pink */
-  --wine-deep: #4a0f30; /* deep plum-pink, base background */
-  --wine-soft: #b23368; /* soft rose pink */
-  --blush: #ffd6e4; /* light blush pink */
-  --paper: #fff3f6; /* warm pink-white paper */
+  --wine: #8c1c4d;
+  --wine-deep: #4a0f30;
+  --wine-soft: #b23368;
+  --blush: #ffd6e4;
+  --paper: #fff3f6;
   --paper-shadow: #f3d9e2;
-  --gold: #dba384; /* rose gold accent */
-  --gold-light: #f6d9c4; /* champagne rose-gold */
+  --gold: #dba384;
+  --gold-light: #f6d9c4;
   --ink: #5c1638;
-  --pink-mid: #d46a8c; /* mid rose pink, used for bouquet variety */
-  --leaf: #8fa377; /* soft sage green, stems & leaves */
-  --leaf-dark: #5f7350; /* deeper green, veins & calyx */
+  --pink-mid: #d46a8c;
+  --leaf: #8fa377;
+  --leaf-dark: #5f7350;
 }
 * {
   box-sizing: border-box;
@@ -771,7 +1366,76 @@ button {
   cursor: pointer;
 }
 
-/* ---------- grain + ambient layers ---------- */
+/* ── premium chrome: scroll progress + side nav ── */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--wine-soft), var(--gold-light), var(--wine-soft));
+  z-index: 50;
+  transition: width 0.15s linear;
+  box-shadow: 0 0 12px rgba(219, 163, 132, 0.6);
+}
+.side-nav {
+  position: fixed;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.side-dot {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(246, 217, 196, 0.35);
+  background: rgba(74, 15, 48, 0.35);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  opacity: 0.55;
+  transition: all 0.25s ease;
+}
+.side-dot:hover,
+.side-dot.is-active {
+  opacity: 1;
+  transform: scale(1.12);
+  border-color: var(--gold-light);
+  box-shadow: 0 0 14px rgba(219, 163, 132, 0.5);
+}
+.side-dot-tooltip {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(30, 6, 20, 0.9);
+  color: var(--gold-light);
+  font-family: 'Jost', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.side-dot:hover .side-dot-tooltip {
+  opacity: 1;
+}
+@media (max-width: 900px) {
+  .side-nav {
+    display: none;
+  }
+}
+
+/* ambient layers */
 .grain-overlay {
   position: fixed;
   inset: 0;
@@ -811,7 +1475,6 @@ button {
     display: none;
   }
 }
-
 .petals-layer {
   position: fixed;
   inset: 0;
@@ -838,7 +1501,6 @@ button {
     opacity: 0;
   }
 }
-
 .hearts-layer {
   position: fixed;
   inset: 0;
@@ -856,7 +1518,7 @@ button {
 }
 @keyframes floatUp {
   0% {
-    transform: translateY(0) translateX(0) rotate(0deg);
+    transform: translateY(0) translateX(0) rotate(0);
     opacity: 0;
   }
   10% {
@@ -871,7 +1533,7 @@ button {
   }
 }
 
-/* ---------- scroll reveal ---------- */
+/* scroll reveal */
 .reveal {
   opacity: 0;
   transform: translateY(24px);
@@ -884,7 +1546,7 @@ button {
   transform: translateY(0);
 }
 
-/* ---------- hero / envelope ---------- */
+/* hero */
 .hero {
   position: relative;
   min-height: 100vh;
@@ -910,7 +1572,6 @@ button {
   background-clip: text;
   color: transparent;
   animation: shimmer 5s linear infinite;
-  text-shadow: 0 0 40px rgba(246, 217, 196, 0.25);
 }
 @keyframes shimmer {
   0% {
@@ -927,6 +1588,7 @@ button {
   color: var(--blush);
 }
 
+/* envelope */
 .envelope-wrap {
   perspective: 1400px;
   margin-bottom: 1.6rem;
@@ -977,7 +1639,6 @@ button {
 .envelope.is-open .envelope-flap {
   transform: rotateX(-178deg);
 }
-
 .postage-stamp {
   position: absolute;
   top: 10px;
@@ -995,7 +1656,6 @@ button {
   z-index: 5;
   background: rgba(140, 28, 77, 0.35);
 }
-
 .wax-seal {
   position: absolute;
   top: 46%;
@@ -1032,7 +1692,6 @@ button {
   opacity: 0;
   pointer-events: none;
 }
-
 .card-out {
   position: absolute;
   top: -40%;
@@ -1065,14 +1724,13 @@ button {
   text-transform: uppercase;
   opacity: 0.65;
 }
-
 .hint {
   margin-top: 1.4rem;
   font-size: 0.95rem;
   opacity: 0.75;
 }
 
-/* ---------- letter overlay ---------- */
+/* letter overlay */
 .scene-backdrop {
   position: fixed;
   inset: 0;
@@ -1094,8 +1752,6 @@ button {
     opacity: 1;
   }
 }
-
-/* holds the letter book and, once revealed, the bouquet beside/below it */
 .book-stage {
   display: flex;
   align-items: center;
@@ -1105,7 +1761,6 @@ button {
   max-width: 100%;
   margin: auto;
 }
-
 .book {
   width: 380px;
   max-width: 92vw;
@@ -1114,7 +1769,6 @@ button {
   position: relative;
   perspective: 1800px;
 }
-
 .book-cover {
   position: absolute;
   inset: 0;
@@ -1156,7 +1810,6 @@ button {
   font-size: 0.85rem;
   opacity: 0.8;
 }
-
 .book-inside {
   position: absolute;
   inset: 0;
@@ -1178,8 +1831,9 @@ button {
   border-radius: 6px;
 }
 .letter-p {
-  font-size: 1.18rem;
-  line-height: 1.55;
+  font-family: 'Great Vibes', cursive;
+  font-size: 1.75rem;
+  line-height: 1.65;
   opacity: 0;
   transform: translateY(8px);
   animation: revealP 0.7s ease forwards;
@@ -1199,7 +1853,6 @@ button {
   padding-top: 0.1rem;
   color: var(--wine);
 }
-
 .close-scene {
   position: absolute;
   top: -3rem;
@@ -1210,8 +1863,6 @@ button {
   font-size: 1.6rem;
   opacity: 0.85;
 }
-
-/* button that reveals the bouquet, shown after the letter */
 .bouquet-cue {
   align-self: center;
   margin-top: 0.6rem;
@@ -1251,128 +1902,7 @@ button {
   }
 }
 
-/* ---------- shared section styles ---------- */
-section {
-  position: relative;
-  z-index: 1;
-  padding: 5rem 1.5rem;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.section-head {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-.section-head h2 {
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  color: var(--gold-light);
-}
-.section-head h2::after {
-  content: '';
-  display: block;
-  width: 60px;
-  height: 2px;
-  margin: 0.8rem auto 0;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-}
-.section-head p {
-  opacity: 0.75;
-  margin-top: 0.6rem;
-}
-
-/* ---------- together-since / birthday counters ---------- */
-.counter-grid {
-  display: flex;
-  justify-content: center;
-  gap: 2.4rem;
-  flex-wrap: wrap;
-}
-.counter-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 80px;
-}
-.counter-num {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(2rem, 5vw, 3rem);
-  color: var(--gold-light);
-}
-.counter-num.pulse {
-  animation: pulseNum 1s ease-in-out infinite;
-}
-@keyframes pulseNum {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.55;
-  }
-}
-.counter-label {
-  font-family: 'Jost', sans-serif;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  opacity: 0.75;
-  margin-top: 0.3rem;
-}
-.counter-caption {
-  text-align: center;
-  margin-top: 2rem;
-  font-size: 1.1rem;
-  opacity: 0.8;
-}
-
-/* ---------- love story timeline ---------- */
-.timeline {
-  position: relative;
-  max-width: 640px;
-  margin: 0 auto;
-  padding-left: 2.4rem;
-}
-.timeline::before {
-  content: '';
-  position: absolute;
-  left: 7px;
-  top: 6px;
-  bottom: 6px;
-  width: 2px;
-  background: linear-gradient(var(--gold), transparent);
-  opacity: 0.55;
-}
-.timeline-item {
-  position: relative;
-  margin-bottom: 2.6rem;
-}
-.timeline-item:last-child {
-  margin-bottom: 0;
-}
-.timeline-dot {
-  position: absolute;
-  left: -2.4rem;
-  top: 4px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, var(--gold-light), var(--gold));
-  box-shadow: 0 0 0 5px rgba(219, 163, 132, 0.18);
-}
-.timeline-content h3 {
-  color: var(--gold-light);
-  font-size: 1.3rem;
-  margin: 0.3rem 0;
-}
-.timeline-content p {
-  opacity: 0.85;
-  line-height: 1.5;
-}
-.timeline-date {
-  opacity: 0.7;
-}
-
-/* ---------- rose bouquet reveal (shown beside/below the letter card) ---------- */
+/* bouquet svg */
 .bouquet-reveal {
   position: relative;
   width: 300px;
@@ -1434,10 +1964,17 @@ section {
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
 }
 .wrap-paper {
-  fill: var(--paper);
+  fill: var(--blush);
 }
 .wrap-paper-fold {
-  fill: var(--paper-shadow);
+  fill: var(--pink-mid);
+}
+.filler-petal {
+  fill: #ffffff;
+  opacity: 0.95;
+}
+.filler-center {
+  fill: #f4c440;
 }
 .ribbon-loop {
   fill: var(--gold-light);
@@ -1446,28 +1983,57 @@ section {
   fill: var(--gold);
 }
 
-/* ---------- reasons flip cards ---------- */
-.reasons-grid {
+/* sections */
+section {
+  position: relative;
+  z-index: 1;
+  padding: 5rem 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.section-head {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.section-head h2 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  color: var(--gold-light);
+}
+.section-head h2::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 2px;
+  margin: 0.8rem auto 0;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.section-head p {
+  opacity: 0.75;
+  margin-top: 0.6rem;
+}
+
+/* wishes */
+.wishes-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1.6rem;
 }
-.reason-card {
+.wish-card {
   aspect-ratio: 3/4;
   perspective: 1200px;
   cursor: pointer;
 }
-.reason-inner {
+.wish-card-inner {
   position: relative;
   width: 100%;
   height: 100%;
   transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
   transform-style: preserve-3d;
 }
-.reason-card.is-flipped .reason-inner {
+.wish-card.is-flipped .wish-card-inner {
   transform: rotateY(180deg);
 }
-.reason-face {
+.wish-card-face {
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
@@ -1479,16 +2045,16 @@ section {
   padding: 1.2rem;
   text-align: center;
 }
-.reason-front {
+.wish-card-front {
   background: linear-gradient(155deg, var(--wine-soft), var(--wine-deep));
   border: 1px solid rgba(246, 217, 196, 0.35);
   gap: 0.8rem;
 }
-.reason-glyph {
+.wish-glyph {
   font-size: 1.8rem;
   color: var(--gold-light);
 }
-.reason-back {
+.wish-card-back {
   background: var(--paper);
   color: var(--ink);
   transform: rotateY(180deg);
@@ -1496,7 +2062,221 @@ section {
   line-height: 1.4;
 }
 
-/* ---------- gallery ---------- */
+/* ═══════════════════════════════════════════════
+   RIZZ GAME
+═══════════════════════════════════════════════ */
+.quiz-wrap {
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6rem;
+}
+.reward-tray {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.reward-slot {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(246, 217, 196, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  background: rgba(255, 255, 255, 0.04);
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+.reward-slot.is-filled {
+  border-style: solid;
+  border-color: var(--gold);
+  background: radial-gradient(circle, rgba(246, 217, 196, 0.25), transparent 70%);
+  transform: scale(1.12);
+  animation: rewardPop 0.5s ease;
+}
+.reward-slot-empty {
+  opacity: 0.3;
+}
+@keyframes rewardPop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+.quiz-card {
+  width: 100%;
+  background: rgba(255, 243, 246, 0.06);
+  border: 1px solid rgba(246, 217, 196, 0.3);
+  border-radius: 20px;
+  padding: 2rem 1.8rem;
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  text-align: center;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+}
+.quiz-progress {
+  color: var(--gold-light);
+}
+.quiz-question {
+  color: var(--gold-light);
+  font-size: clamp(1.15rem, 3vw, 1.4rem);
+  line-height: 1.5;
+  margin: 0;
+}
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: 100%;
+}
+.quiz-option {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.92rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1.5px solid rgba(246, 217, 196, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--paper);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+.quiz-option:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold);
+  background: rgba(255, 255, 255, 0.09);
+}
+.rizz-why-btn {
+  padding: 0.85rem 2.2rem;
+  font-size: 1rem;
+  border-radius: 30px;
+  background: linear-gradient(135deg, var(--wine-soft), var(--wine));
+  border-color: var(--gold);
+  color: var(--gold-light);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+.rizz-why-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+.rizz-line {
+  font-family: 'Great Vibes', cursive;
+  font-size: 1.7rem !important;
+  line-height: 1.5;
+  color: var(--gold-light) !important;
+  animation: revealP 0.6s ease forwards;
+}
+.quiz-option.is-correct {
+  background: linear-gradient(135deg, #4caf7d, #2e7d54);
+  border-color: #7ee6ab;
+  color: #fff;
+}
+.quiz-option.is-wrong {
+  background: linear-gradient(135deg, #b23368, #7a1c46);
+  border-color: #ff9db8;
+  color: #fff;
+  animation: quizShake 0.4s ease;
+}
+@keyframes quizShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+.quiz-feedback {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  margin: 0;
+  opacity: 0.9;
+}
+.quiz-feedback.is-good {
+  color: #b6f0cf;
+}
+.quiz-feedback.is-bad {
+  color: #ffc4d6;
+}
+.quiz-complete-bouquet {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-size: 2rem;
+}
+.quiz-complete-bouquet span {
+  animation: bouquetPopIn 0.5s ease both;
+}
+@keyframes bouquetPopIn {
+  0% {
+    transform: scale(0) rotate(-20deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+.quiz-complete-note {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  opacity: 0.85;
+  max-width: 380px;
+  line-height: 1.6;
+}
+.quiz-replay-btn {
+  margin-top: 0.4rem;
+  background: linear-gradient(135deg, var(--wine-soft), var(--wine));
+  border: 1px solid var(--gold);
+  color: var(--gold-light);
+  border-radius: 30px;
+  padding: 0.65rem 1.6rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.quiz-replay-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.3);
+}
+@media (max-width: 520px) {
+  .quiz-card {
+    padding: 1.6rem 1.2rem;
+  }
+  .reward-slot {
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+  }
+}
+
+/* gallery */
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -1550,34 +2330,318 @@ section {
   opacity: 0.75;
 }
 
-/* ---------- main video ---------- */
-.film-frame {
-  max-width: 780px;
-  margin: 0 auto;
-  border-radius: 14px;
-  padding: 10px;
-  background: linear-gradient(155deg, var(--wine-soft), var(--wine-deep));
-  border: 1px solid var(--gold);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+/* ═══════════════════════════════════════════════
+   CINEMA — premium theatre experience
+═══════════════════════════════════════════════ */
+#film {
+  max-width: 1020px;
 }
-.film-video {
-  width: 100%;
-  aspect-ratio: 16/9;
-  border-radius: 8px;
-  display: block;
-  background: #000;
-}
-.film-thumb {
+
+.cinema-room {
   position: relative;
+  background: linear-gradient(180deg, #06020a 0%, #0e0610 45%, #160a18 100%);
+  border-radius: 22px;
+  padding: 0 0 0;
+  overflow: hidden;
+  box-shadow:
+    0 50px 100px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(219, 163, 132, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* ceiling glow */
+.cinema-room::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  height: 80px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(100, 18, 52, 0.55) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cinema-arch-top {
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #7a3050 10%,
+    #dba384 30%,
+    #f6d9c4 50%,
+    #dba384 70%,
+    #7a3050 90%,
+    transparent 100%
+  );
+  position: relative;
+  z-index: 2;
+}
+.cinema-arch-bottom {
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #7a3050 10%,
+    #dba384 30%,
+    #f6d9c4 50%,
+    #dba384 70%,
+    #7a3050 90%,
+    transparent 100%
+  );
+  border-radius: 0 0 22px 22px;
+}
+
+/* wall sconces */
+.sconces {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 28px 10px;
+  position: relative;
+  z-index: 2;
+}
+.sconce {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.sconce-bracket {
+  width: 2px;
+  height: 10px;
+  background: linear-gradient(180deg, rgba(122, 48, 80, 0.8), rgba(219, 163, 132, 0.6));
+}
+.sconce-bulb {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff8f0, #f6d9c4 55%, #dba384);
+  box-shadow:
+    0 0 10px 5px rgba(246, 217, 196, 0.55),
+    0 0 28px 10px rgba(219, 163, 132, 0.2);
+  animation: sconcePulse 3.8s ease-in-out infinite;
+}
+@keyframes sconcePulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow:
+      0 0 10px 5px rgba(246, 217, 196, 0.55),
+      0 0 28px 10px rgba(219, 163, 132, 0.2);
+  }
+  50% {
+    opacity: 0.78;
+    box-shadow:
+      0 0 6px 3px rgba(246, 217, 196, 0.38),
+      0 0 18px 6px rgba(219, 163, 132, 0.12);
+  }
+}
+
+/* stage layout */
+.cinema-stage {
+  position: relative;
+  padding: 0 20px;
+  z-index: 1;
+}
+
+/* curtain rod */
+.curtain-rod {
+  height: 9px;
+  background: linear-gradient(
+    90deg,
+    #100408 0%,
+    #5c1238 12%,
+    #c47850 35%,
+    #f6d9c4 50%,
+    #c47850 65%,
+    #5c1238 88%,
+    #100408 100%
+  );
+  border-radius: 5px;
+  position: relative;
+  z-index: 5;
+  box-shadow:
+    0 3px 12px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(219, 163, 132, 0.25);
+  margin-bottom: -1px;
+}
+.rod-finial {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f6d9c4, #dba384 55%, #8a5560);
+  box-shadow: 0 0 10px rgba(219, 163, 132, 0.5);
+}
+.rod-finial-l {
+  left: -7px;
+}
+.rod-finial-r {
+  right: -7px;
+}
+
+/* stage inner holds curtains + bezel */
+.stage-inner {
+  position: relative;
+}
+
+/* curtains */
+.curtain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  z-index: 4;
+  pointer-events: none;
+  transition:
+    width 1.4s cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 1.4s ease;
+}
+.curtain-l {
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    #2e0818 0%,
+    #5c1238 30%,
+    #8c1c4d 60%,
+    rgba(140, 28, 77, 0) 100%
+  );
+  border-radius: 0 0 0 3px;
+}
+.curtain-r {
+  right: 0;
+  background: linear-gradient(
+    270deg,
+    #2e0818 0%,
+    #5c1238 30%,
+    #8c1c4d 60%,
+    rgba(140, 28, 77, 0) 100%
+  );
+  border-radius: 0 0 3px 0;
+}
+/* curtain opens by squeezing width outward */
+.curtain.curtain-open {
+  width: 18px;
+}
+/* velvet fold lines */
+.curtain-fold {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+.curtain-l .curtain-fold:nth-child(1) {
+  left: 28px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.curtain-l .curtain-fold:nth-child(2) {
+  left: 52px;
+  background: rgba(0, 0, 0, 0.18);
+}
+.curtain-r .curtain-fold:nth-child(1) {
+  right: 28px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.curtain-r .curtain-fold:nth-child(2) {
+  right: 52px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+/* spotlight cone during opening */
+.spotlight {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 120px solid transparent;
+  border-right: 120px solid transparent;
+  border-top: 260px solid rgba(246, 217, 196, 0.07);
+  z-index: 3;
+  pointer-events: none;
+  animation: spotFade 2.4s ease forwards;
+  filter: blur(18px);
+}
+@keyframes spotFade {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* the bezel */
+.cinema-bezel {
+  position: relative;
+  background: #000;
+  border-radius: 3px;
+  border: 8px solid #0a0210;
+  box-shadow:
+    0 0 0 1px rgba(219, 163, 132, 0.2),
+    0 0 0 3px #04010a,
+    0 0 0 4px rgba(219, 163, 132, 0.07),
+    inset 0 0 50px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+}
+
+/* CRT scanlines */
+.scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.07) 2px,
+    rgba(0, 0, 0, 0.07) 4px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+/* glass glare */
+.screen-glare {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 38%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 11;
+  border-radius: 2px 2px 0 0;
+}
+/* vignette */
+.screen-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(0, 0, 0, 0.55) 100%);
+  pointer-events: none;
+  z-index: 9;
+}
+
+/* idle / opening screen */
+.film-thumb {
   width: 100%;
   aspect-ratio: 16/9;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--wine-soft), var(--wine-deep));
+  background: linear-gradient(135deg, #100618 0%, #060208 50%, #0e0412 100%);
+  cursor: pointer;
+  position: relative;
+}
+.film-thumb--dark {
+  cursor: default;
 }
 .film-poster {
   position: absolute;
@@ -1586,11 +2650,78 @@ section {
   height: 100%;
   object-fit: cover;
 }
+
+/* "now showing" text */
+.opening-text {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  color: rgba(246, 217, 196, 0.7);
+  letter-spacing: 0.12em;
+  z-index: 2;
+  animation: openingFade 2.4s ease forwards;
+}
+@keyframes openingFade {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* pulsing rings around play button */
+.cinema-play-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pulse-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgba(246, 217, 196, 0.28);
+  animation: ringPulse 2.6s ease-out infinite;
+}
+.ring-1 {
+  width: 100px;
+  height: 100px;
+  animation-delay: 0s;
+}
+.ring-2 {
+  width: 140px;
+  height: 140px;
+  animation-delay: 0.7s;
+}
+.ring-3 {
+  width: 180px;
+  height: 180px;
+  border-color: rgba(219, 163, 132, 0.14);
+  animation-delay: 1.3s;
+}
+@keyframes ringPulse {
+  0% {
+    transform: scale(0.82);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.22);
+    opacity: 0;
+  }
+}
+
 .play-btn {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: rgba(255, 243, 246, 0.94);
+  background: rgba(255, 243, 246, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1598,18 +2729,17 @@ section {
   z-index: 2;
 }
 .play-btn.big {
-  width: 76px;
-  height: 76px;
+  width: 78px;
+  height: 78px;
+  box-shadow:
+    0 0 32px rgba(246, 217, 196, 0.45),
+    0 0 64px rgba(140, 28, 77, 0.3);
 }
 .play-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   fill: var(--wine);
-  margin-left: 3px;
-}
-.play-btn.big svg {
-  width: 30px;
-  height: 30px;
+  margin-left: 4px;
 }
 .video-placeholder {
   position: absolute;
@@ -1623,7 +2753,61 @@ section {
   font-size: 0.8rem;
 }
 
-/* ---------- make a wish / candle ---------- */
+.film-video {
+  width: 100%;
+  aspect-ratio: 16/9;
+  display: block;
+  background: #000;
+}
+
+/* floor + seats */
+.cinema-floor-fade {
+  height: 24px;
+  background: linear-gradient(180deg, rgba(14, 6, 16, 0) 0%, rgba(6, 2, 10, 0.85) 100%);
+}
+.cinema-seats {
+  display: flex;
+  justify-content: center;
+  padding: 8px 28px 18px;
+  background: #04010a;
+}
+.seat-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.seat {
+  width: 32px;
+  height: 28px;
+  background: linear-gradient(180deg, #2e0d1c 0%, #190810 100%);
+  border-radius: 5px 5px 0 0;
+  border: 1px solid rgba(100, 24, 58, 0.35);
+  position: relative;
+}
+.seat::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 3px;
+  right: 3px;
+  height: 11px;
+  background: linear-gradient(180deg, #3d1428, #2a0d1c);
+  border-radius: 4px 4px 0 0;
+  border: 1px solid rgba(100, 24, 58, 0.28);
+  border-bottom: none;
+}
+.seat::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 5px;
+  right: 5px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 2px;
+}
+
+/* candle wish */
 .cake-wrap {
   display: flex;
   flex-direction: column;
@@ -1643,7 +2827,7 @@ section {
 @keyframes flicker {
   0%,
   100% {
-    transform: scale(1) skewX(0deg);
+    transform: scale(1) skewX(0);
   }
   35% {
     transform: scale(1.06, 0.94) skewX(2deg);
@@ -1678,7 +2862,7 @@ section {
   animation: revealP 0.8s ease forwards;
 }
 
-/* ---------- modals ---------- */
+/* modals */
 .modal {
   position: fixed;
   inset: 0;
@@ -1715,7 +2899,7 @@ section {
   opacity: 0.85;
 }
 
-/* ---------- footer ---------- */
+/* footer */
 footer {
   text-align: center;
   padding: 5rem 1.5rem 6rem;
@@ -1732,56 +2916,355 @@ footer p {
   opacity: 0.75;
 }
 
-/* ---------- music toggle / equalizer ---------- */
-.music-toggle {
+/* ═══════════════════════════════════════════════
+   SETTINGS — one small gear icon, tucked bottom-right,
+   opens a compact panel for Music + Reaction recorder.
+═══════════════════════════════════════════════ */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 16;
+  background: transparent;
+}
+.settings-wrap {
   position: fixed;
   bottom: 1.4rem;
   right: 1.4rem;
-  z-index: 15;
-  width: 52px;
-  height: 52px;
+  z-index: 17;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.8rem;
+}
+.settings-toggle {
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: var(--gold);
-  border: none;
+  background: linear-gradient(155deg, var(--gold-light), var(--gold));
+  border: 1px solid rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.25s ease;
 }
-.eq-bar {
-  width: 3px;
-  border-radius: 2px;
-  background: var(--wine-deep);
+.settings-toggle:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
 }
-.eq-bar:nth-child(1) {
-  height: 8px;
+.settings-toggle.is-open {
+  transform: rotate(35deg);
 }
-.eq-bar:nth-child(2) {
+.settings-gear {
+  width: 15px;
+  height: 15px;
+  fill: var(--wine-deep);
+}
+.settings-panel {
+  width: 236px;
+  max-width: 76vw;
+  background: linear-gradient(165deg, rgba(178, 51, 104, 0.28), rgba(30, 6, 20, 0.94));
+  border: 1px solid rgba(246, 217, 196, 0.3);
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.1rem;
+}
+.settings-row-icon {
+  font-size: 1.1rem;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.settings-row-label {
+  flex: 1;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  color: var(--gold-light);
+}
+.settings-divider {
+  height: 1px;
+  background: rgba(246, 217, 196, 0.18);
+  margin: 0.2rem 0;
+}
+.settings-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(246, 217, 196, 0.3);
+  flex-shrink: 0;
+  transition: background 0.25s ease;
+}
+.settings-switch.is-on {
+  background: linear-gradient(135deg, var(--wine-soft), var(--wine));
+  border-color: var(--gold);
+}
+.settings-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
   height: 16px;
+  border-radius: 50%;
+  background: var(--gold-light);
+  transition: transform 0.25s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
-.eq-bar:nth-child(3) {
-  height: 10px;
+.settings-switch.is-on .settings-switch-knob {
+  transform: translateX(18px);
 }
-.music-toggle.is-playing .eq-bar {
-  animation: eqBounce 0.9s ease-in-out infinite;
+.settings-action-btn {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.7rem;
+  border-radius: 20px;
+  border: 1px solid var(--gold);
+  background: linear-gradient(135deg, var(--wine-soft), var(--wine));
+  color: var(--gold-light);
+  flex-shrink: 0;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
-.music-toggle.is-playing .eq-bar:nth-child(1) {
-  animation-delay: 0s;
+.settings-action-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
-.music-toggle.is-playing .eq-bar:nth-child(2) {
-  animation-delay: 0.15s;
+.settings-action-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
-.music-toggle.is-playing .eq-bar:nth-child(3) {
-  animation-delay: 0.3s;
+.settings-error {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.7rem;
+  color: #ffc4d6;
+  margin: 0.4rem 0 0.1rem;
+  line-height: 1.4;
 }
-@keyframes eqBounce {
+.settings-pop-enter-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.1);
+}
+.settings-pop-leave-active {
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+.settings-pop-enter-from,
+.settings-pop-leave-to {
+  opacity: 0;
+  transform: translateY(8px) scale(0.96);
+}
+
+/* ═══════════════════════════════════════════════
+   REACTION CAM — live bubble + review panel
+═══════════════════════════════════════════════ */
+
+/* live self-view bubble, stays put while she scrolls */
+.camera-bubble {
+  position: fixed;
+  bottom: 1.4rem;
+  left: 1.4rem;
+  z-index: 18;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--gold);
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.5),
+    0 0 0 5px rgba(219, 163, 132, 0.15);
+  background: #05010a;
+  animation: bubbleIn 0.4s cubic-bezier(0.2, 0.8, 0.3, 1.1);
+}
+@keyframes bubbleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.camera-bubble-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scaleX(-1);
+  background: #000;
+}
+.camera-bubble-rec {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.32rem;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 20px;
+  padding: 0.2rem 0.55rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  color: #ffdfe6;
+}
+.camera-bubble-stop {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+.camera-bubble-stop:hover {
+  transform: translateX(-50%) scale(1.08);
+}
+.stop-square {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: #ff4d6d;
+}
+.rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4d6d;
+  animation: recBlink 1.1s ease-in-out infinite;
+}
+@keyframes recBlink {
   0%,
   100% {
-    height: 8px;
+    opacity: 1;
   }
   50% {
-    height: 20px;
+    opacity: 0.25;
+  }
+}
+
+/* review panel after stopping */
+.camera-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 6, 20, 0.8);
+  backdrop-filter: blur(3px);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.3s ease;
+  overflow-y: auto;
+}
+.camera-panel {
+  position: relative;
+  width: 420px;
+  max-width: 92vw;
+  background: linear-gradient(165deg, rgba(178, 51, 104, 0.22), rgba(30, 6, 20, 0.92));
+  border: 1px solid rgba(246, 217, 196, 0.3);
+  border-radius: 20px;
+  padding: 2.2rem 1.8rem 1.8rem;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  margin: auto;
+}
+.camera-panel-close {
+  position: absolute;
+  top: 0.8rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--gold-light);
+  font-size: 1.6rem;
+  opacity: 0.85;
+}
+.camera-panel-title {
+  font-size: 1.8rem;
+  color: var(--gold-light);
+  margin: 0;
+}
+.camera-panel-sub {
+  font-size: 0.92rem;
+  opacity: 0.75;
+  line-height: 1.5;
+  max-width: 340px;
+  margin: -0.4rem 0 0;
+}
+.camera-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #05010a;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(246, 217, 196, 0.25);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
+}
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+.camera-controls {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.rec-secondary-btn {
+  background: rgba(255, 255, 255, 0.06);
+}
+@media (max-width: 520px) {
+  .settings-toggle {
+    width: 30px;
+    height: 30px;
+  }
+  .settings-gear {
+    width: 13px;
+    height: 13px;
+  }
+  .settings-panel {
+    width: 208px;
+  }
+  .camera-bubble {
+    width: 104px;
+    height: 104px;
+  }
+  .camera-panel {
+    padding: 1.8rem 1.3rem 1.5rem;
   }
 }
 
@@ -1792,14 +3275,12 @@ footer p {
   }
 }
 
-/* ---------- responsive: laptop / tablet ---------- */
 @media (max-width: 1024px) {
   section {
     padding: 4rem 1.4rem;
   }
 }
 
-/* ---------- responsive: tablet ---------- */
 @media (max-width: 768px) {
   section {
     padding: 3.5rem 1.2rem;
@@ -1807,20 +3288,34 @@ footer p {
   .section-head {
     margin-bottom: 2.2rem;
   }
-  .counter-grid {
-    gap: 1.6rem;
-  }
-  .reasons-grid {
+  .wishes-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 1.2rem;
   }
-  .film-frame {
-    padding: 7px;
-    border-radius: 10px;
+  .cinema-room {
+    border-radius: 14px;
+  }
+  .sconces {
+    padding: 10px 16px 8px;
+  }
+  .cinema-stage {
+    padding: 0 12px;
+  }
+  .curtain {
+    width: 56px;
+  }
+  .curtain.curtain-open {
+    width: 12px;
+  }
+  .seat {
+    width: 26px;
+    height: 22px;
+  }
+  .seat-row {
+    gap: 5px;
   }
 }
 
-/* ---------- responsive: phone (cp) ---------- */
 @media (max-width: 520px) {
   .hero {
     padding: 1.5rem 1rem;
@@ -1835,37 +3330,62 @@ footer p {
   .polaroid {
     width: 100%;
   }
-  .reasons-grid {
+  .wishes-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-  .counter-grid {
-    gap: 1.2rem;
-  }
-  .counter-item {
-    min-width: 64px;
   }
   .book-inside {
     padding: 2rem 1.4rem;
   }
   .letter-p {
-    font-size: 1.05rem;
+    font-size: 1.45rem;
   }
   .cake {
     max-width: 72vw;
   }
-  .timeline {
-    padding-left: 2rem;
-  }
-  .timeline-dot {
-    left: -2rem;
-  }
   .bouquet-reveal {
     width: 230px;
+  }
+  .cinema-room {
+    border-radius: 10px;
+  }
+  .sconces {
+    padding: 8px 12px 6px;
+  }
+  .cinema-stage {
+    padding: 0 8px;
+  }
+  .curtain {
+    width: 40px;
+  }
+  .curtain.curtain-open {
+    width: 8px;
+  }
+  .seat {
+    width: 20px;
+    height: 18px;
+  }
+  .seat-row {
+    gap: 4px;
+  }
+  .cinema-seats {
+    padding: 6px 16px 14px;
+  }
+  .ring-1 {
+    width: 78px;
+    height: 78px;
+  }
+  .ring-2 {
+    width: 110px;
+    height: 110px;
+  }
+  .ring-3 {
+    width: 142px;
+    height: 142px;
   }
 }
 
 @media (max-width: 360px) {
-  .reasons-grid {
+  .wishes-grid {
     grid-template-columns: 1fr;
   }
   .envelope {
