@@ -35,7 +35,7 @@ const wishes = [
 ]
 
 const photos = reactive<Photo[]>([
-  { src: 'public/pics/2.jpg', caption: '' },
+  { src: `${import.meta.env.BASE_URL}pics/1.jpg`, caption: '' },
   { src: 'public/pics/1.jpg', caption: '' },
   { src: 'public/pics/3.jpg', caption: '' },
   { src: 'public/pics/4.jpg', caption: '' },
