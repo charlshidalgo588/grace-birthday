@@ -35,28 +35,28 @@ const wishes = [
 ]
 
 const photos = reactive<Photo[]>([
+  { src: `${import.meta.env.BASE_URL}pics/2.jpg`, caption: '' },
   { src: `${import.meta.env.BASE_URL}pics/1.jpg`, caption: '' },
-  { src: 'public/pics/1.jpg', caption: '' },
-  { src: 'public/pics/3.jpg', caption: '' },
-  { src: 'public/pics/4.jpg', caption: '' },
-  { src: 'public/pics/5.jpeg', caption: '' },
-  { src: 'public/pics/6.jpeg', caption: '' },
-  { src: 'public/pics/7.jpeg', caption: '' },
-  { src: 'public/pics/8.jpeg', caption: '' },
-  { src: 'public/pics/9.jpeg', caption: '' },
-  { src: 'public/pics/10.jpg', caption: '' },
-  { src: 'public/pics/11.jpeg', caption: '' },
-  { src: 'public/pics/12.jpeg', caption: '' },
+  { src: `${import.meta.env.BASE_URL}pics/3.jpg`, caption: '' },
+  { src: `${import.meta.env.BASE_URL}pics/4.jpg`, caption: '' },
+  { src: `${import.meta.env.BASE_URL}pics/5.jpeg`, caption: '' },
+  { src: `${import.meta.env.BASE_URL}pics/6.jpeg`, caption: '' },
+  { src: `${import.meta.env.BASE_URL}pics/7.jpeg`, caption: '' },
+  { src: `${import.meta.env.BASE_URL}pics/8.jpeg`, caption: '' },
+  { src: `${import.meta.env.BASE_URL}pics/9.jpeg`, caption: '' },
+  { src: `${import.meta.env.BASE_URL}pics/10.jpg`, caption: '' },
+  { src: `${import.meta.env.BASE_URL}pics/11.jpeg`, caption: '' },
+  { src: `${import.meta.env.BASE_URL}pics/12.jpeg`, caption: '' },
 ])
 
 const mainVideo = reactive({
-  src: `${import.meta.env.BASE_URL}public/vids/bdayvidgrace.mp4`,
+  src: `${import.meta.env.BASE_URL}vids/bdayvidgrace.mp4`,
   poster: '',
   caption:
     "A little something I put together. I hope you appreciate this small effort of mine and, even though we're miles apart, that you can still feel how much I love you.",
 })
 
-const musicUrl = 'public/music/Bruno Major - Nothing (Lyric Chord Video).mp3'
+const musicUrl = `${import.meta.env.BASE_URL}music/Bruno Major - Nothing (Lyric Chord Video).mp3`
 const wishText = `Whatever you wished for, I hope it finds you exactly when you need it. And if nothing crossed your mind — I'm already wishing it for you.`
 
 const outerPetalPath = 'M0,0 C-13,-8 -15,-22 -5,-31 C-2,-33 2,-33 5,-31 C15,-22 13,-8 0,0 Z'
