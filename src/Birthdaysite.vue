@@ -4,6 +4,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 interface Photo {
   src: string
   caption: string
+  liked?: boolean
 }
 
 interface Milestone {
@@ -14,14 +15,24 @@ interface Milestone {
 
 const herName = 'Graceyy'
 const yourName = 'Charls'
+const herAge = 22
 
 const message = [
   `My dearest Love ${herName},`,
-  `Before you is a small ritual — a seal to break, a card to open, and, waiting on the other side, everything I've been wanting to tell you.`,
-  `[✏️ Edit this paragraph — write about a specific memory. The night you met, a trip you took, an ordinary Tuesday that turned out to matter.]`,
-  `[✏️ Edit this paragraph — write about what you love about her, in your own words. Be specific: a habit, a laugh, a way she sees the world.]`,
-  `Today is about celebrating you — all of you. I hope this year holds everything you deserve, and I hope I get to watch it happen right beside you.`,
-  `Happy Birthday. I love you more than this little letter can hold.`,
+  ``,
+  `I know letters are usually written with paper and pen, but even though I'm not writing this one by hand, I promise that every word comes straight from my heart.`,
+  `We may be far apart, but I hope this letter finds you with a smile and makes your day a little more special.`,
+  `It may not be the best gift you receive today, but I hope you'll cherish it because every word is sincere, genuine, and written just for you.`,
+  `Just like you, these words are truly special.`,
+  `I am forever grateful to have you in my life, love. I will never get tired of telling you that. I am always here to support and cheer for you, to love and care for you, to fight and get things fixed with you, as I want to live my life only with you.`,
+  `Even though we're apart right now, my heart will always be close to you. Sooner or later, we'll be together again, and I promise we'll do all the things we used to enjoy—the food we love, the laughter we share, the warm hugs and sweet kisses, and my favorite part: listening to all your stories. (But I like more what you are thinking rn 🤪)`,
+  `By the way, you're absolutely adorable whenever you tell me your stories. I could listen to you for hours. Hehe.`,
+  `I hope you always stay the wonderful person you are, my love, because that's what makes you so special—simply being yourself.`,
+  `Please never lose your kind heart, your generosity, your purity, and the love you so freely give to the people around you. Those beautiful qualities are what make you truly one of a kind, and they're some of the many reasons I love you so much.`,
+  `Thank you for being here always for me, my love, for staying, especailly in hard times. I appreciate you so much, and I love you so much.`,
+  `I promise to work hard for us and if someday I get things right, I will give you the life and happiness you deserve, love.`,
+  `Today is your day, love, I hope you feel just how loved and appreciated you are. My wish for you is simple: that this year brings you closer to everything you've been praying for. And I hope I get to be right beside you through it all—celebrating your wins, holding your hand through the hard days, and making more beautiful memories with you.`,
+  `Happy Birthday, my love. I love you more than this little letter could ever put into words. No matter how much I write, it will never be enough to show you just how much you mean to me.`,
   `Forever yours, ${yourName}`,
 ]
 
@@ -48,6 +59,98 @@ const photos = reactive<Photo[]>([
   { src: `${import.meta.env.BASE_URL}pics/11.jpeg`, caption: '' },
   { src: `${import.meta.env.BASE_URL}pics/12.jpeg`, caption: '' },
 ])
+
+/* ============================================================
+   📷 GALLERY INTERACTIVITY — per-photo "love" hearts, a subtle
+   pointer-driven tilt, and a full lightbox with prev/next nav,
+   keyboard arrows, swipe-to-browse, and double-tap-to-like.
+   ============================================================ */
+const cardTilt = reactive<{ rx: number; ry: number; scale: number }[]>(
+  photos.map(() => ({ rx: 0, ry: 0, scale: 1 })),
+)
+
+function handleTilt(e: MouseEvent, i: number) {
+  const el = e.currentTarget as HTMLElement
+  const rect = el.getBoundingClientRect()
+  const px = (e.clientX - rect.left) / rect.width - 0.5
+  const py = (e.clientY - rect.top) / rect.height - 0.5
+  cardTilt[i] = { rx: py * -9, ry: px * 11, scale: 1.045 }
+}
+function resetTilt(i: number) {
+  cardTilt[i] = { rx: 0, ry: 0, scale: 1 }
+}
+function polaroidTransform(i: number) {
+  const base = tilts[i % tilts.length]
+  const t = cardTilt[i] ?? { rx: 0, ry: 0, scale: 1 }
+  return `rotate(${base}deg) scale(${t.scale}) rotateX(${t.rx}deg) rotateY(${t.ry}deg)`
+}
+
+const heartCount = computed(() => photos.filter((p) => p.liked).length)
+
+/* small floating hearts that burst from wherever you tapped "like" */
+const loveBursts = ref<{ id: string; x: number; y: number; glyph: string }[]>([])
+function burstHeartsAt(evt?: MouseEvent | { clientX: number; clientY: number }) {
+  const x = evt?.clientX ?? window.innerWidth / 2
+  const y = evt?.clientY ?? window.innerHeight / 2
+  const batch = []
+  for (let i = 0; i < 8; i++) {
+    batch.push({
+      id: `${Date.now()}-${i}-${Math.random()}`,
+      x: x + (Math.random() * 70 - 35),
+      y: y + (Math.random() * 30 - 15),
+      glyph: i % 3 === 0 ? '💛' : '♥',
+    })
+  }
+  loveBursts.value.push(...batch)
+  const ids = new Set(batch.map((b) => b.id))
+  setTimeout(() => {
+    loveBursts.value = loveBursts.value.filter((h) => !ids.has(h.id))
+  }, 900)
+}
+
+function toggleLike(photo: Photo, evt?: MouseEvent) {
+  photo.liked = !photo.liked
+  if (photo.liked) burstHeartsAt(evt)
+}
+
+const lightboxIndex = ref(-1)
+const lightboxPhoto = computed<Photo | null>(() =>
+  lightboxIndex.value >= 0 ? (photos[lightboxIndex.value] ?? null) : null,
+)
+
+function openLightbox(i: number) {
+  lightboxIndex.value = i
+}
+function closeLightbox() {
+  lightboxIndex.value = -1
+}
+function nextPhoto() {
+  if (lightboxIndex.value < 0) return
+  lightboxIndex.value = (lightboxIndex.value + 1) % photos.length
+}
+function prevPhoto() {
+  if (lightboxIndex.value < 0) return
+  lightboxIndex.value = (lightboxIndex.value - 1 + photos.length) % photos.length
+}
+function onLightboxKeydown(e: KeyboardEvent) {
+  if (lightboxIndex.value < 0) return
+  if (e.key === 'ArrowRight') nextPhoto()
+  else if (e.key === 'ArrowLeft') prevPhoto()
+  else if (e.key === 'Escape') closeLightbox()
+}
+
+let lightboxTouchStartX = 0
+function onLightboxTouchStart(e: TouchEvent) {
+  lightboxTouchStartX = e.changedTouches[0]?.clientX ?? 0
+}
+function onLightboxTouchEnd(e: TouchEvent) {
+  const endX = e.changedTouches[0]?.clientX ?? 0
+  const delta = endX - lightboxTouchStartX
+  if (Math.abs(delta) > 50) {
+    if (delta < 0) nextPhoto()
+    else prevPhoto()
+  }
+}
 
 const mainVideo = reactive({
   src: `${import.meta.env.BASE_URL}vids/bdayvidgrace.mp4`,
@@ -141,86 +244,170 @@ const fillers = [
 ]
 
 /* ============================================================
-   💌 RIZZ GAME — "Why?"
-   A little flirty game: each card teases a line, she taps
-   "Why?" to reveal the smooth follow-up. Collect them all to
-   unlock a bonus message.
+   🌷 EXTRA BOUQUET BLOOMS — tulips and daisies woven in among
+   the roses, plus a few twinkling sparkles and a little hanging
+   note tag, so the bouquet feels like a real, full arrangement
+   and not just one flower repeated.
+   ============================================================ */
+const tulipPetalPath = 'M0,0 C-9,-6 -11,-24 0,-34 C11,-24 9,-6 0,0 Z'
+const daisyPetalPath = 'M0,0 C-3,-3 -3,-16 0,-20 C3,-16 3,-3 0,0 Z'
+
+const tulips = [
+  {
+    x: 118,
+    y: 150,
+    scale: 0.85,
+    rotate: -10,
+    front: 'var(--blush)',
+    side: 'var(--pink-mid)',
+    stem: 'M150,300 C136,262 122,208 118,168',
+  },
+  {
+    x: 182,
+    y: 148,
+    scale: 0.85,
+    rotate: 10,
+    front: '#fff2f6',
+    side: 'var(--blush)',
+    stem: 'M150,300 C164,262 178,206 182,166',
+  },
+  {
+    x: 150,
+    y: 182,
+    scale: 0.72,
+    rotate: 0,
+    front: 'var(--pink-mid)',
+    side: 'var(--wine-soft)',
+    stem: 'M150,300 C150,262 150,214 150,196',
+  },
+]
+
+const daisies = [
+  { x: 80, y: 198, scale: 0.6, rotate: -12, stem: 'M150,300 C120,276 96,238 80,216' },
+  { x: 220, y: 196, scale: 0.6, rotate: 14, stem: 'M150,300 C180,276 204,236 220,214' },
+  { x: 100, y: 140, scale: 0.5, rotate: 20, stem: 'M150,300 C128,266 112,206 100,158' },
+  { x: 200, y: 138, scale: 0.5, rotate: -18, stem: 'M150,300 C172,266 188,204 200,156' },
+]
+
+const bouquetSparkles = [
+  { x: 70, y: 78, r: 2, delay: 0 },
+  { x: 232, y: 88, r: 1.6, delay: 0.45 },
+  { x: 150, y: 36, r: 2.2, delay: 0.9 },
+  { x: 58, y: 152, r: 1.8, delay: 1.3 },
+  { x: 242, y: 148, r: 1.6, delay: 0.2 },
+  { x: 112, y: 58, r: 1.4, delay: 0.65 },
+  { x: 190, y: 56, r: 1.4, delay: 1.1 },
+]
+
+/* ============================================================
+   💌 TITO JOKES — "Reveal punchline"
+   A little corny game: each card teases a setup, she taps to
+   reveal the (groan-worthy, sweet) punchline. Collect them all
+   to unlock a bonus message.
    ✏️ Edit the teaser/line pairs to match your own sense of humor.
    ============================================================ */
-interface RizzCard {
+interface TitoJoke {
   teaser: string
   line: string
   icon: string
 }
 
-const rizzCards = reactive<RizzCard[]>([
+const titoJokes = reactive<TitoJoke[]>([
   {
-    teaser: 'I still get nervous around you.',
-    line: "Because after all this time, you still give me butterflies — like it's the first day all over again.",
-    icon: '🦋',
+    teaser: "Why don't scientists trust atoms anymore?",
+    line: 'Because they make up literally everything — kind of like how you make up my entire world. 😂❤️',
+    icon: '⚛️',
   },
   {
-    teaser: "You're the last thing I think about before I sleep.",
-    line: 'And the first thing on my mind the moment I wake up.',
-    icon: '🌙',
+    teaser: 'What did the ocean say to the shore?',
+    line: 'Nothing, love — it just waved. 🌊 Kind of like how you wave hello and my whole heart grins like an idiot.',
+    icon: '🌊',
   },
   {
-    teaser: 'I still get a little shy telling you this.',
-    line: 'But you stole my heart a long time ago, and I never wanted it back.',
-    icon: '🙈',
+    teaser: 'Why did the coffee file a police report?',
+    line: 'It got mugged! ☕ The only thing I want stolen around here is one more kiss from you.',
+    icon: '☕',
   },
   {
-    teaser: "My favorite place isn't a place.",
-    line: "It's wherever you are, doing absolutely nothing, and still feeling like everything.",
-    icon: '📍',
+    teaser: "Why don't eggs ever tell jokes?",
+    line: "They'd crack each other up. 🥚 You crack me up too — in the best, most annoying-in-a-cute-way possible.",
+    icon: '🥚',
   },
   {
-    teaser: "I don't really need a good morning text.",
-    line: 'Because just knowing you love me is already the best part of my day.',
-    icon: '☀️',
+    teaser: "What do you call cheese that isn't yours?",
+    line: 'Nacho cheese! 🧀 …unlike my heart, which has always, only ever been yours.',
+    icon: '🧀',
   },
   {
-    teaser: "You're my favorite 'what if' that came true.",
-    line: "Because loving you turned out to be the best risk I've ever taken.",
-    icon: '💛',
+    teaser: "What's a tito's favorite kind of joke?",
+    line: 'The corny kind — a good pun is its own re-word. 😅 And loving you? Best reward I never even had to work for.',
+    icon: '😂',
   },
 ])
 
-const rizzIndex = ref(0)
-const rizzRevealed = ref(false)
-const rizzComplete = ref(false)
+const jokeIndex = ref(0)
+const jokeRevealed = ref(false)
+const jokesComplete = ref(false)
 const collectedIcons = reactive<string[]>([])
 
-// TS's noUncheckedIndexedAccess flags rizzCards[rizzIndex.value] as possibly
+// TS's noUncheckedIndexedAccess flags titoJokes[jokeIndex.value] as possibly
 // undefined even though the index is always in bounds by construction —
-// this computed gives every reader a guaranteed, non-undefined card.
-const currentRizz = computed<RizzCard>(
-  () => rizzCards[rizzIndex.value] ?? { teaser: '', line: '', icon: '' },
+// this computed gives every reader a guaranteed, non-undefined joke.
+const currentJoke = computed<TitoJoke>(
+  () => titoJokes[jokeIndex.value] ?? { teaser: '', line: '', icon: '' },
 )
 
-function revealRizz() {
-  if (rizzRevealed.value) return
-  rizzRevealed.value = true
-  collectedIcons.push(currentRizz.value.icon)
+function revealJoke() {
+  if (jokeRevealed.value) return
+  jokeRevealed.value = true
+  collectedIcons.push(currentJoke.value.icon)
   burstPetals(50)
 }
 
-function nextRizz() {
-  if (rizzIndex.value < rizzCards.length - 1) {
-    rizzIndex.value++
-    rizzRevealed.value = false
+function nextJoke() {
+  if (jokeIndex.value < titoJokes.length - 1) {
+    jokeIndex.value++
+    jokeRevealed.value = false
   } else {
-    rizzComplete.value = true
+    jokesComplete.value = true
     burstPetals(46)
   }
 }
 
-function resetRizz() {
-  rizzIndex.value = 0
-  rizzRevealed.value = false
-  rizzComplete.value = false
+function resetJokes() {
+  jokeIndex.value = 0
+  jokeRevealed.value = false
+  jokesComplete.value = false
   collectedIcons.splice(0, collectedIcons.length)
 }
+
+/* ============================================================
+   💛 A little running tally of all the "love" collected across
+   the page — gallery hearts, joke icons, and hero taps — shown
+   quietly in the footer as one sweet closing touch.
+   ============================================================ */
+const loveTapCount = ref(0)
+const loveTapMessages = [
+  "That's one. ❤️",
+  'Okay, I felt that one.',
+  "You're making my heart race.",
+  "Careful — it's already full of you.",
+  'I love you a little more with every tap, I promise.',
+  'Okay okay — infinite loop initiated. I love you forever.',
+]
+const loveTapMessage = computed(() => {
+  const idx = Math.min(loveTapCount.value, loveTapMessages.length) - 1
+  return idx >= 0 ? loveTapMessages[idx] : ''
+})
+function tapLove(e: MouseEvent) {
+  loveTapCount.value++
+  burstHeartsAt(e)
+}
+
+const totalLoveCollected = computed(
+  () =>
+    heartCount.value + collectedIcons.length + Math.min(loveTapCount.value, loveTapMessages.length),
+)
 
 /* ============================================================
    🎥 REACTION CAM — screen + webcam, combined
@@ -498,7 +685,7 @@ function updateScrollProgress() {
 const navDots = [
   { id: 'hero', label: 'Home', icon: '💌' },
   { id: 'wishes', label: 'Wishes', icon: '🎀' },
-  { id: 'quiz', label: 'Play', icon: '😏' },
+  { id: 'jokes', label: 'Jokes', icon: '😂' },
   { id: 'gallery', label: 'Moments', icon: '📷' },
   { id: 'film', label: 'Film', icon: '🎬' },
   { id: 'wish', label: 'Wish', icon: '🕯️' },
@@ -515,7 +702,6 @@ const sealBroken = ref(false)
 const envelopeOpen = ref(false)
 const bookOpen = ref(false)
 const showBook = ref(false)
-const lightboxPhoto = ref<Photo | null>(null)
 const musicPlaying = ref(false)
 const audio = ref<HTMLAudioElement | null>(null)
 
@@ -579,6 +765,78 @@ function closeBook() {
   showBook.value = false
   bookOpen.value = false
   bouquetRevealed.value = false
+  letterProgress.value = 0
+}
+
+/* ============================================================
+   🎀 Letter reading ribbon — a slim gold thread across the top
+   of the book that fills in as she scrolls through the letter,
+   plus a soft synthesized "page turn" sound when the cover
+   opens. Purely presentational — the message text itself is
+   never touched.
+   ============================================================ */
+const letterProgress = ref(0)
+
+function onLetterScroll(e: Event) {
+  const el = e.target as HTMLElement
+  const max = el.scrollHeight - el.clientHeight
+  letterProgress.value = max > 0 ? Math.min(100, (el.scrollTop / max) * 100) : 100
+}
+
+let letterAudioCtx: AudioContext | null = null
+function getLetterAudioCtx(): AudioContext | null {
+  try {
+    if (!letterAudioCtx) {
+      const Ctx = window.AudioContext || (window as any).webkitAudioContext
+      if (!Ctx) return null
+      letterAudioCtx = new Ctx()
+    }
+    if (letterAudioCtx.state === 'suspended') {
+      letterAudioCtx.resume().catch(() => {})
+    }
+    return letterAudioCtx
+  } catch (err) {
+    console.error('AudioContext unavailable:', err)
+    return null
+  }
+}
+
+/** A soft filtered-noise "paper rustle" — the sound of a page turning. */
+function playPageTurnSound() {
+  const ctx = getLetterAudioCtx()
+  if (!ctx) return
+  const now = ctx.currentTime
+
+  const bufferSize = Math.floor(ctx.sampleRate * 0.35)
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 1.4)
+  }
+  const noise = ctx.createBufferSource()
+  noise.buffer = buffer
+
+  const filter = ctx.createBiquadFilter()
+  filter.type = 'bandpass'
+  filter.Q.value = 0.7
+  filter.frequency.setValueAtTime(900, now)
+  filter.frequency.linearRampToValueAtTime(2600, now + 0.18)
+  filter.frequency.linearRampToValueAtTime(1400, now + 0.34)
+
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(0.0001, now)
+  gain.gain.linearRampToValueAtTime(0.16, now + 0.04)
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.34)
+
+  noise.connect(filter).connect(gain).connect(ctx.destination)
+  noise.start(now)
+  noise.stop(now + 0.36)
+}
+
+function openCover() {
+  if (bookOpen.value) return
+  bookOpen.value = true
+  playPageTurnSound()
 }
 
 /* ── Music: autoplay on load, loop forever, auto-duck for the video ── */
@@ -653,6 +911,51 @@ function blowCandle() {
   }, 700)
 }
 
+/* ============================================================
+   🎂 CAKE — a two-tier "drip cake" built from primitives so it
+   stays crisp at any size: gradient-shaded tiers, a hand-drawn
+   melting-frosting edge on each tier (computed, not hand-typed,
+   so the wave stays smooth), a gold ribbon + bow, sugar-rosette
+   accents at the seam, and iced-on name + age lettering on the
+   top tier. The candle + blow-to-wish interaction is unchanged.
+   ============================================================ */
+function dripPath(x0: number, x1: number, yTop: number, drops: number[], capHeight = 10) {
+  const width = x1 - x0
+  const n = drops.length
+  const step = width / n
+  let d = `M${x0},${yTop}`
+  for (let i = 0; i < n; i++) {
+    const segStart = x0 + step * i
+    const segMid = segStart + step * 0.5
+    const segEnd = segStart + step
+    const dropY = yTop + (drops[i] ?? 10)
+    d += ` C${segStart + step * 0.22},${yTop} ${segStart + step * 0.22},${dropY} ${segMid},${dropY}`
+    d += ` C${segMid + step * 0.28},${dropY} ${segMid + step * 0.28},${yTop} ${segEnd},${yTop}`
+  }
+  d += ` L${x1},${yTop - capHeight} L${x0},${yTop - capHeight} Z`
+  return d
+}
+
+const bottomDrips = [9, 17, 7, 21, 11, 19, 8, 15, 10, 18, 7]
+const topDrips = [13, 21, 9, 23, 12, 19, 10]
+
+const bottomTierDripPath = computed(() => dripPath(44, 256, 176, bottomDrips, 11))
+const topTierDripPath = computed(() => dripPath(84, 216, 96, topDrips, 11))
+
+function pearlRow(x0: number, x1: number, gap: number) {
+  const arr: number[] = []
+  for (let x = x0; x <= x1; x += gap) arr.push(x)
+  return arr
+}
+const bottomPearls = computed(() => pearlRow(52, 248, 13))
+const topPearls = computed(() => pearlRow(90, 210, 12))
+
+const miniRoses = [
+  { x: 96, y: 179, scale: 0.46, color: 'var(--wine-soft)', center: 'var(--gold-light)' },
+  { x: 150, y: 184, scale: 0.5, color: 'var(--blush)', center: 'var(--gold)' },
+  { x: 204, y: 179, scale: 0.46, color: 'var(--pink-mid)', center: 'var(--gold-light)' },
+]
+
 const sparkles = ref<{ id: number; x: number; y: number }[]>([])
 let lastMove = 0
 function handleMouseMove(e: MouseEvent) {
@@ -684,6 +987,9 @@ onMounted(() => {
   window.addEventListener('scroll', updateScrollProgress, { passive: true })
   updateScrollProgress()
 
+  // gallery lightbox keyboard navigation
+  window.addEventListener('keydown', onLightboxKeydown)
+
   navObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -705,11 +1011,15 @@ onUnmounted(() => {
   window.removeEventListener('keydown', unlockAutoplayOnFirstInteraction)
   window.removeEventListener('touchstart', unlockAutoplayOnFirstInteraction)
   window.removeEventListener('scroll', updateScrollProgress)
+  window.removeEventListener('keydown', onLightboxKeydown)
   if (navObserver) navObserver.disconnect()
   if (recordTimerId) clearInterval(recordTimerId)
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop()
   cleanupStreams()
   if (recordedUrl.value) URL.revokeObjectURL(recordedUrl.value)
+  if (letterAudioCtx) {
+    letterAudioCtx.close().catch(() => {})
+  }
 })
 
 const vReveal = {
@@ -750,6 +1060,39 @@ const vReveal = {
 
   <div class="grain-overlay"></div>
 
+  <!-- soft night-sky ambiance, matching the gate page: twinkling stars
+       + drifting bokeh light, sitting behind everything else -->
+  <div class="stars-layer" aria-hidden="true">
+    <span
+      v-for="n in 44"
+      :key="'star' + n"
+      class="star"
+      :style="{
+        left: ((n * 13.7 + 3) % 100) + '%',
+        top: ((n * 7.9 + 4) % 100) + '%',
+        animationDelay: (n % 22) * 0.28 + 's',
+        animationDuration: 2.2 + (n % 4) * 0.7 + 's',
+        width: 1 + (n % 3) + 'px',
+        height: 1 + (n % 3) + 'px',
+      }"
+    ></span>
+  </div>
+  <div class="bokeh-layer" aria-hidden="true">
+    <span
+      v-for="n in 10"
+      :key="'bokeh' + n"
+      class="bokeh"
+      :style="{
+        left: ((n * 17 + 4) % 92) + '%',
+        top: ((n * 23 + 8) % 96) + '%',
+        animationDelay: n * 1.3 + 's',
+        animationDuration: 7 + (n % 3) + 's',
+        width: 60 + (n % 3) * 30 + 'px',
+        height: 60 + (n % 3) * 30 + 'px',
+      }"
+    ></span>
+  </div>
+
   <div class="sparkle-layer">
     <span
       class="sparkle"
@@ -775,6 +1118,17 @@ const vReveal = {
     ></span>
   </div>
 
+  <!-- floating hearts burst wherever a "like" is tapped -->
+  <div class="love-burst-layer" aria-hidden="true">
+    <span
+      class="love-burst"
+      v-for="h in loveBursts"
+      :key="h.id"
+      :style="{ left: h.x + 'px', top: h.y + 'px' }"
+      >{{ h.glyph }}</span
+    >
+  </div>
+
   <div class="hearts-layer">
     <div
       class="heart"
@@ -796,6 +1150,11 @@ const vReveal = {
     <p class="eyebrow label">a little something for</p>
     <h1 class="hero-title">Happy Birthday My Love</h1>
     <p class="hero-sub script" style="font-size: 1.6rem">{{ herName }}</p>
+
+    <button class="hero-love-btn" @click="tapLove" aria-label="Tap for love">
+      tap for love <span>♡</span>
+    </button>
+    <p class="hero-love-msg script" v-if="loveTapMessage">{{ loveTapMessage }}</p>
 
     <div class="envelope-wrap">
       <div class="envelope" :class="{ 'is-open': envelopeOpen, 'is-lifted': envelopeOpen }">
@@ -827,8 +1186,11 @@ const vReveal = {
   <div class="scene-backdrop" v-if="showBook" @click.self="closeBook">
     <div class="book-stage">
       <div class="book" :class="{ 'is-open': bookOpen }">
+        <div class="letter-progress-bar" v-if="bookOpen" aria-hidden="true">
+          <div class="letter-progress-fill" :style="{ width: letterProgress + '%' }"></div>
+        </div>
         <button class="close-scene" @click="closeBook" aria-label="Close">×</button>
-        <div class="book-inside" v-if="bookOpen">
+        <div class="book-inside" v-if="bookOpen" @scroll="onLetterScroll">
           <p
             class="letter-p"
             v-for="(p, i) in message"
@@ -846,7 +1208,7 @@ const vReveal = {
           </button>
           <p class="bouquet-note script" v-else>for you, {{ herName }} — always</p>
         </div>
-        <div class="book-cover" @click="bookOpen = true" v-show="!bookOpen">
+        <div class="book-cover" @click="openCover" v-show="!bookOpen">
           <div class="monogram script">{{ herName.charAt(0) }}</div>
           <div class="cover-title script">For {{ herName }}</div>
           <div class="open-cta label">tap to open</div>
@@ -859,6 +1221,8 @@ const vReveal = {
           <path class="wrap-paper" d="M150,296 L252,392 L48,392 Z" />
           <path class="wrap-paper wrap-paper-fold" d="M150,296 L206,392 L94,392 Z" />
           <path v-for="(r, i) in roses" :key="'stem' + i" class="stem" :d="r.stem" />
+          <path v-for="(t, i) in tulips" :key="'tstem' + i" class="stem" :d="t.stem" />
+          <path v-for="(d, i) in daisies" :key="'dstem' + i" class="stem" :d="d.stem" />
           <g
             v-for="(l, i) in leaves"
             :key="'leaf' + i"
@@ -891,6 +1255,41 @@ const vReveal = {
               rx="2"
               transform="rotate(45)"
             />
+          </g>
+          <!-- daisies: soft filler blooms tucked around the base -->
+          <g
+            v-for="(d, i) in daisies"
+            :key="'daisy' + i"
+            :transform="
+              'translate(' + d.x + ',' + d.y + ') rotate(' + d.rotate + ') scale(' + d.scale + ')'
+            "
+          >
+            <g v-for="n in 10" :key="'dp' + n" :transform="'rotate(' + n * 36 + ')'">
+              <path class="daisy-petal" :d="daisyPetalPath" />
+            </g>
+            <circle class="daisy-center" r="5" />
+          </g>
+          <!-- tulips: a second flower woven in with the roses -->
+          <g
+            v-for="(t, i) in tulips"
+            :key="'tulip' + i"
+            :transform="
+              'translate(' + t.x + ',' + t.y + ') rotate(' + t.rotate + ') scale(' + t.scale + ')'
+            "
+          >
+            <path
+              class="tulip-petal tulip-side"
+              :d="tulipPetalPath"
+              :fill="t.side"
+              transform="rotate(-24) translate(-3,0)"
+            />
+            <path
+              class="tulip-petal tulip-side"
+              :d="tulipPetalPath"
+              :fill="t.side"
+              transform="rotate(24) translate(3,0)"
+            />
+            <path class="tulip-petal tulip-front" :d="tulipPetalPath" :fill="t.front" />
           </g>
           <g
             v-for="(r, i) in roses"
@@ -930,6 +1329,30 @@ const vReveal = {
             />
             <circle class="filler-center" r="2.6" />
           </g>
+          <!-- a few twinkling sparkles drifting over the whole arrangement -->
+          <g class="bouquet-sparkles" aria-hidden="true">
+            <circle
+              v-for="(sp, i) in bouquetSparkles"
+              :key="'sp' + i"
+              :cx="sp.x"
+              :cy="sp.y"
+              :r="sp.r"
+              class="bouquet-sparkle"
+              :style="{ animationDelay: sp.delay + 's' }"
+            />
+          </g>
+          <!-- a little hanging note tag tied to the ribbon — tap it for a burst of love -->
+          <g
+            class="bouquet-tag"
+            transform="translate(150,330)"
+            @click="burstHeartsAt"
+            role="button"
+            aria-label="A little note"
+          >
+            <line x1="0" y1="-33" x2="0" y2="-8" class="tag-thread" />
+            <rect x="-48" y="-8" width="98" height="30" rx="6" class="tag-body" />
+            <text x="0" y="11" class="tag-text" text-anchor="middle">with all my love</text>
+          </g>
         </svg>
       </div>
     </div>
@@ -964,18 +1387,19 @@ const vReveal = {
     </div>
   </section>
 
-  <!-- ── RIZZ GAME ── -->
-  <section id="quiz" v-reveal>
+  <!-- ── TITO JOKES ── -->
+  <section id="jokes" v-reveal>
     <div class="section-head">
-      <h2>Okay, Hear Me Out…</h2>
-      <p>tap "why?" to see where I'm going with this 😏</p>
+      <span class="corny-badge label">certified corny™</span>
+      <h2>Tito Jokes to make you smile</h2>
+      <p>tap the card to reveal the punchline — I make no apologies 😅</p>
     </div>
 
-    <div class="quiz-wrap">
+    <div class="joke-wrap">
       <div class="reward-tray">
         <div
           class="reward-slot"
-          v-for="(c, i) in rizzCards"
+          v-for="(c, i) in titoJokes"
           :key="'slot' + i"
           :class="{ 'is-filled': collectedIcons[i] }"
         >
@@ -984,35 +1408,41 @@ const vReveal = {
         </div>
       </div>
 
-      <div class="quiz-card" v-if="!rizzComplete">
-        <span class="quiz-progress label">Line {{ rizzIndex + 1 }} / {{ rizzCards.length }}</span>
-        <h3 class="quiz-question">{{ currentRizz.teaser }}</h3>
+      <div class="joke-card" v-if="!jokesComplete">
+        <div class="joke-card-crest">
+          <span class="joke-card-crest-line"></span>
+          <span class="joke-card-crest-icon">🎙️</span>
+          <span class="joke-card-crest-line"></span>
+        </div>
+        <span class="quiz-progress label">Joke {{ jokeIndex + 1 }} of {{ titoJokes.length }}</span>
+        <h3 class="quiz-question">{{ currentJoke.teaser }}</h3>
 
-        <button class="quiz-option rizz-why-btn" v-if="!rizzRevealed" @click="revealRizz">
-          Why? 😏
+        <button class="quiz-option joke-reveal-btn" v-if="!jokeRevealed" @click="revealJoke">
+          Reveal punchline 🥁
         </button>
 
-        <p class="quiz-feedback is-good rizz-line" v-else>{{ currentRizz.line }}</p>
+        <p class="quiz-feedback is-good joke-line" v-else>{{ currentJoke.line }}</p>
 
-        <button class="quiz-replay-btn" v-if="rizzRevealed" @click="nextRizz">
-          {{ rizzIndex < rizzCards.length - 1 ? 'Next line →' : 'Finish' }}
+        <button class="quiz-replay-btn" v-if="jokeRevealed" @click="nextJoke">
+          {{ jokeIndex < titoJokes.length - 1 ? 'Next joke →' : 'Finish' }}
         </button>
       </div>
 
-      <div class="quiz-card quiz-complete" v-else>
+      <div class="joke-card quiz-complete" v-else>
         <div class="quiz-complete-bouquet">
           <span
             v-for="(icon, i) in collectedIcons"
-            :key="'r' + i"
+            :key="'j' + i"
             :style="{ animationDelay: i * 0.12 + 's' }"
             >{{ icon }}</span
           >
         </div>
-        <h3 class="quiz-question">Okay okay, I'm done being smooth 😏</h3>
+        <span class="corny-badge label">tito-approved</span>
+        <h3 class="quiz-question">Okay, I'll retire from stand-up now 😂</h3>
         <p class="quiz-complete-note">
-          Cheesy lines aside — none of them come close to how I actually feel about you.
+          Corny jokes aside — you smiling, even at these, is still my favorite thing in the world.
         </p>
-        <button class="quiz-replay-btn" @click="resetRizz">Play again</button>
+        <button class="quiz-replay-btn" @click="resetJokes">Hear them again</button>
       </div>
     </div>
   </section>
@@ -1021,29 +1451,47 @@ const vReveal = {
   <section id="gallery" v-reveal>
     <div class="section-head">
       <h2>Our Moments</h2>
-      <p>a few of my favorites</p>
+      <p>tap a photo to look closer · tap ♡ to love it · swipe or use arrows in the viewer</p>
+      <p class="gallery-love-counter label" v-if="heartCount">
+        {{ heartCount }} of {{ photos.length }} moments loved 💛
+      </p>
     </div>
     <div class="gallery-grid">
       <figure
         class="polaroid"
         v-for="(photo, i) in photos"
         :key="i"
+        :class="{ 'is-liked': photo.liked }"
         :style="{
-          transform: 'rotate(' + tilts[i % tilts.length] + 'deg)',
+          transform: polaroidTransform(i),
           transitionDelay: i * 0.06 + 's',
         }"
-        @click="lightboxPhoto = photo"
+        @mousemove="handleTilt($event, i)"
+        @mouseleave="resetTilt(i)"
+        @click="openLightbox(i)"
         v-reveal
       >
+        <button
+          class="polaroid-like"
+          :class="{ 'is-liked': photo.liked }"
+          @click.stop="toggleLike(photo, $event)"
+          aria-label="Love this photo"
+        >
+          {{ photo.liked ? '♥' : '♡' }}
+        </button>
         <div class="frame">
-          <img v-if="photo.src" :src="photo.src" :alt="photo.caption" />
+          <img v-if="photo.src" :src="photo.src" :alt="photo.caption" loading="lazy" />
           <svg v-else viewBox="0 0 24 24">
             <path
               d="M9 3 7.17 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9zm3 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"
             />
           </svg>
+          <div class="frame-overlay"><span class="frame-overlay-icon">🔍</span></div>
         </div>
-        <figcaption>{{ photo.caption }}</figcaption>
+        <figcaption>
+          <span class="polaroid-index">{{ i + 1 }}</span>
+          <span v-if="photo.caption">{{ photo.caption }}</span>
+        </figcaption>
       </figure>
     </div>
   </section>
@@ -1159,37 +1607,148 @@ const vReveal = {
     <div class="cake-wrap">
       <svg
         class="cake"
-        viewBox="0 0 200 160"
+        viewBox="0 0 300 300"
         @click="blowCandle"
         role="button"
         aria-label="Blow out the candle"
       >
         <defs>
-          <linearGradient id="cakeGrad" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="tierBottomGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="var(--wine-soft)" />
+            <stop offset="55%" stop-color="var(--wine)" />
             <stop offset="100%" stop-color="var(--wine-deep)" />
           </linearGradient>
+          <linearGradient id="tierTopGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--wine)" />
+            <stop offset="60%" stop-color="var(--wine-deep)" />
+            <stop offset="100%" stop-color="#3a0c26" />
+          </linearGradient>
+          <linearGradient id="frostingGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#fffaf6" />
+            <stop offset="100%" stop-color="var(--blush)" />
+          </linearGradient>
+          <radialGradient id="plateGrad" cx="40%" cy="35%" r="70%">
+            <stop offset="0%" stop-color="var(--gold-light)" />
+            <stop offset="100%" stop-color="var(--gold)" />
+          </radialGradient>
+          <linearGradient id="ribbonGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="var(--gold)" />
+            <stop offset="50%" stop-color="var(--gold-light)" />
+            <stop offset="100%" stop-color="var(--gold)" />
+          </linearGradient>
+          <linearGradient id="candleGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="var(--gold)" />
+            <stop offset="50%" stop-color="#fff8f2" />
+            <stop offset="100%" stop-color="var(--gold)" />
+          </linearGradient>
         </defs>
-        <rect x="94" y="30" width="12" height="42" rx="3" fill="var(--gold)" />
-        <g v-if="candleLit" class="flame-group">
-          <path
-            class="flame"
-            d="M100 6 C 93 20 88 30 100 36 C 112 30 107 20 100 6 Z"
-            fill="#ffb84d"
+
+        <!-- plate -->
+        <ellipse cx="150" cy="270" rx="128" ry="13" class="cake-plate-shadow" />
+        <ellipse cx="150" cy="261" rx="120" ry="11" fill="url(#plateGrad)" />
+        <ellipse cx="150" cy="258" rx="108" ry="8" class="cake-plate-top" />
+
+        <!-- bottom tier -->
+        <rect x="44" y="178" width="212" height="66" rx="7" fill="url(#tierBottomGrad)" />
+        <!-- drip frosting cap -->
+        <path :d="bottomTierDripPath" fill="url(#frostingGrad)" class="frosting-drip" />
+        <!-- gold ribbon band -->
+        <rect x="44" y="209" width="212" height="11" fill="url(#ribbonGrad)" class="ribbon-strip" />
+        <g class="cake-bow" transform="translate(150,214)">
+          <path class="ribbon-loop" d="M0,0 C-19,-6 -22,-17 -10,-19 C-3,-20 1,-13 0,0 Z" />
+          <path class="ribbon-loop" d="M0,0 C19,-6 22,-17 10,-19 C3,-20 -1,-13 0,0 Z" />
+          <rect
+            class="ribbon-knot"
+            x="-5.5"
+            y="-5.5"
+            width="11"
+            height="11"
+            rx="2"
+            transform="rotate(45)"
           />
         </g>
-        <g v-else class="smoke">
-          <path
-            d="M100 30 Q 106 20 100 10 Q 94 0 100 -10"
-            stroke="rgba(255,243,247,0.5)"
-            stroke-width="2.5"
-            fill="none"
-            stroke-linecap="round"
-          />
+        <!-- pearl border along the base -->
+        <circle
+          v-for="(x, i) in bottomPearls"
+          :key="'bp' + i"
+          :cx="x"
+          cy="243"
+          r="2.6"
+          class="cake-pearl"
+        />
+
+        <!-- sugar rosettes sitting in the seam between tiers -->
+        <g
+          v-for="(mr, i) in miniRoses"
+          :key="'mr' + i"
+          :transform="'translate(' + mr.x + ',' + mr.y + ') scale(' + mr.scale + ')'"
+        >
+          <g v-for="n in 6" :key="'mrp' + n" :transform="'rotate(' + n * 60 + ')'">
+            <ellipse cx="0" cy="-9" rx="6" ry="9" :fill="mr.color" class="mini-rose-petal" />
+          </g>
+          <circle r="4" :fill="mr.center" />
         </g>
-        <path d="M28 72 Q 64 48 100 72 Q 136 48 172 72 L172 72 L28 72 Z" fill="var(--paper)" />
-        <rect x="28" y="72" width="144" height="66" rx="12" fill="url(#cakeGrad)" />
-        <rect x="28" y="98" width="144" height="6" fill="rgba(246,217,196,.3)" />
+        <g transform="translate(122,171) scale(0.5)">
+          <path class="leaf" :d="leafPath" transform="rotate(-40)" />
+        </g>
+        <g transform="translate(178,171) scale(0.5)">
+          <path class="leaf" :d="leafPath" transform="rotate(220)" />
+        </g>
+
+        <!-- top tier -->
+        <rect x="84" y="98" width="132" height="72" rx="7" fill="url(#tierTopGrad)" />
+        <path :d="topTierDripPath" fill="url(#frostingGrad)" class="frosting-drip" />
+        <circle
+          v-for="(x, i) in topPearls"
+          :key="'tp' + i"
+          :cx="x"
+          cy="164"
+          r="2.2"
+          class="cake-pearl"
+        />
+
+        <!-- iced-on name + age -->
+        <text x="150" y="129" text-anchor="middle" class="cake-name script">{{ herName }}</text>
+        <line x1="118" y1="139" x2="182" y2="139" class="cake-name-underline" />
+        <text x="150" y="157" text-anchor="middle" class="cake-age">{{ herAge }}</text>
+
+        <!-- candle -->
+        <g transform="translate(150,0)">
+          <rect
+            x="-6"
+            y="48"
+            width="12"
+            height="40"
+            rx="3"
+            fill="url(#candleGrad)"
+            class="candle-body"
+          />
+          <rect x="-6" y="58" width="12" height="4" class="candle-stripe" />
+          <rect x="-6" y="70" width="12" height="4" class="candle-stripe" />
+          <path d="M-6,48 Q0,44 6,48 L6,52 Q0,49 -6,52 Z" class="candle-drip" />
+          <g v-if="candleLit" class="flame-group" transform="translate(0,48)">
+            <path class="flame-glow" d="M0,-2 C-11,-16 -16,-28 0,-40 C16,-28 11,-16 0,-2 Z" />
+            <path
+              class="flame"
+              d="M0,-2 C-7,-12 -11,-20 0,-30 C11,-20 7,-12 0,-2 Z"
+              fill="#ffb84d"
+            />
+            <path
+              class="flame-core"
+              d="M0,-2 C-3,-8 -4,-13 0,-18 C4,-13 3,-8 0,-2 Z"
+              fill="#fff3c4"
+            />
+          </g>
+          <g v-else class="smoke" transform="translate(0,48)">
+            <path
+              d="M0,0 Q6,-10 0,-20 Q-6,-30 0,-40"
+              stroke="rgba(255,243,247,0.5)"
+              stroke-width="2.5"
+              fill="none"
+              stroke-linecap="round"
+            />
+          </g>
+        </g>
       </svg>
       <p class="wish-hint" v-if="candleLit">🕯️ tap</p>
       <p class="wish-text script" v-else-if="wishGranted">{{ wishText }}</p>
@@ -1199,15 +1758,46 @@ const vReveal = {
   <footer v-reveal>
     <span class="script">Happy Birthday, My Love {{ herName }}. I love you so much.</span>
     <p>— {{ yourName }}</p>
+    <p class="footer-love-tally label" v-if="totalLoveCollected">
+      you've collected {{ totalLoveCollected }} little pieces of love here 💛
+    </p>
   </footer>
 
-  <!-- lightbox -->
-  <div class="modal" v-if="lightboxPhoto" @click.self="lightboxPhoto = null">
-    <button class="modal-close" @click="lightboxPhoto = null">×</button>
-    <figure>
-      <img v-if="lightboxPhoto.src" :src="lightboxPhoto.src" :alt="lightboxPhoto.caption" />
-      <figcaption>{{ lightboxPhoto.caption }}</figcaption>
+  <!-- gallery lightbox: prev/next nav, keyboard arrows, swipe, double-tap-like -->
+  <div
+    class="modal gallery-lightbox"
+    v-if="lightboxPhoto"
+    @click.self="closeLightbox"
+    @touchstart="onLightboxTouchStart"
+    @touchend="onLightboxTouchEnd"
+  >
+    <button class="modal-close" @click="closeLightbox" aria-label="Close">×</button>
+    <button class="lightbox-nav lightbox-prev" @click.stop="prevPhoto" aria-label="Previous photo">
+      ‹
+    </button>
+    <button class="lightbox-nav lightbox-next" @click.stop="nextPhoto" aria-label="Next photo">
+      ›
+    </button>
+    <figure @dblclick="toggleLike(lightboxPhoto, $event)">
+      <img
+        :key="lightboxIndex"
+        v-if="lightboxPhoto.src"
+        :src="lightboxPhoto.src"
+        :alt="lightboxPhoto.caption"
+        class="lightbox-fade"
+      />
+      <figcaption>
+        <span v-if="lightboxPhoto.caption">{{ lightboxPhoto.caption }}</span>
+        <span class="lightbox-counter label">{{ lightboxIndex + 1 }} / {{ photos.length }}</span>
+      </figcaption>
     </figure>
+    <button
+      class="lightbox-like"
+      :class="{ 'is-liked': lightboxPhoto.liked }"
+      @click.stop="toggleLike(lightboxPhoto, $event)"
+    >
+      {{ lightboxPhoto.liked ? '♥ loved' : '♡ love this' }}
+    </button>
   </div>
 
   <audio ref="audio" :src="musicUrl" loop></audio>
@@ -1445,6 +2035,59 @@ button {
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
+
+/* soft night-sky ambiance, matching the gate page: twinkling stars
+   + drifting bokeh light, fixed behind the content while she scrolls */
+.stars-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: #f6d9c4;
+  box-shadow: 0 0 4px rgba(246, 217, 196, 0.85);
+  animation: starTwinkle ease-in-out infinite;
+}
+@keyframes starTwinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.75);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.3);
+  }
+}
+.bokeh-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.bokeh {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(246, 217, 196, 0.22), transparent 72%);
+  filter: blur(3px);
+  animation: bokehDrift ease-in-out infinite alternate;
+}
+@keyframes bokehDrift {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(22px, -32px) scale(1.18);
+    opacity: 0.95;
+  }
+}
+
 .sparkle-layer {
   position: fixed;
   inset: 0;
@@ -1501,6 +2144,36 @@ button {
     opacity: 0;
   }
 }
+
+/* floating hearts burst on "like" taps */
+.love-burst-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 45;
+  overflow: hidden;
+}
+.love-burst {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  font-size: 1.1rem;
+  animation: loveBurstFloat 0.9s ease-out forwards;
+}
+@keyframes loveBurstFloat {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-50%, -140%) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -220%) scale(0.9);
+  }
+}
+
 .hearts-layer {
   position: fixed;
   inset: 0;
@@ -1584,8 +2257,35 @@ button {
 .hero-sub {
   font-size: 1.1rem;
   opacity: 0.85;
-  margin-bottom: 3rem;
+  margin-bottom: 1.2rem;
   color: var(--blush);
+}
+.hero-love-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(246, 217, 196, 0.35);
+  color: var(--gold-light);
+  border-radius: 30px;
+  padding: 0.5rem 1.2rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+  margin-bottom: 0.7rem;
+}
+.hero-love-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.1);
+}
+.hero-love-msg {
+  font-size: 1.15rem;
+  color: var(--blush);
+  margin: 0 0 1.6rem;
+  animation: revealP 0.5s ease forwards;
 }
 
 /* envelope */
@@ -1810,6 +2510,27 @@ button {
   font-size: 0.85rem;
   opacity: 0.8;
 }
+
+/* reading-progress ribbon: fills in gold as she scrolls through
+   the letter, pinned to the very top edge of the book */
+.letter-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(140, 28, 77, 0.28);
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+  z-index: 7;
+}
+.letter-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--wine-soft), var(--gold-light), var(--wine-soft));
+  box-shadow: 0 0 10px rgba(219, 163, 132, 0.65);
+  transition: width 0.15s ease-out;
+}
 .book-inside {
   position: absolute;
   inset: 0;
@@ -1983,6 +2704,64 @@ button {
   fill: var(--gold);
 }
 
+/* extra bouquet blooms: daisies, tulips, sparkles, hanging tag */
+.daisy-petal {
+  fill: #fffaf5;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
+}
+.daisy-center {
+  fill: #f4c440;
+}
+.tulip-petal {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
+}
+.tulip-front {
+  opacity: 0.98;
+}
+.tulip-side {
+  opacity: 0.9;
+}
+.bouquet-sparkle {
+  fill: #fff8f2;
+  opacity: 0;
+  animation: bouquetTwinkle 2.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px rgba(255, 248, 242, 0.9));
+}
+@keyframes bouquetTwinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+.bouquet-tag {
+  cursor: pointer;
+}
+.tag-thread {
+  stroke: var(--gold);
+  stroke-width: 1.2;
+  opacity: 0.8;
+}
+.tag-body {
+  fill: #fff8f2;
+  stroke: var(--gold);
+  stroke-width: 1;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  transition: transform 0.2s ease;
+}
+.bouquet-tag:hover .tag-body {
+  transform: translateY(-2px);
+}
+.tag-text {
+  font-family: 'Dancing Script', cursive;
+  font-size: 13px;
+  fill: var(--wine);
+}
+
 /* sections */
 section {
   position: relative;
@@ -2010,6 +2789,11 @@ section {
 .section-head p {
   opacity: 0.75;
   margin-top: 0.6rem;
+}
+.gallery-love-counter {
+  margin-top: 0.6rem;
+  color: var(--gold-light);
+  opacity: 0.9;
 }
 
 /* wishes */
@@ -2063,9 +2847,20 @@ section {
 }
 
 /* ═══════════════════════════════════════════════
-   RIZZ GAME
+   TITO JOKES
 ═══════════════════════════════════════════════ */
-.quiz-wrap {
+.corny-badge {
+  display: inline-block;
+  color: var(--wine-deep);
+  background: linear-gradient(120deg, var(--gold-light), var(--gold));
+  padding: 0.32rem 0.9rem;
+  border-radius: 30px;
+  font-size: 0.62rem;
+  margin-bottom: 0.7rem;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
+  opacity: 1;
+}
+.joke-wrap {
   max-width: 560px;
   margin: 0 auto;
   display: flex;
@@ -2117,19 +2912,59 @@ section {
     opacity: 1;
   }
 }
-.quiz-card {
+.joke-card {
+  position: relative;
   width: 100%;
-  background: rgba(255, 243, 246, 0.06);
-  border: 1px solid rgba(246, 217, 196, 0.3);
-  border-radius: 20px;
-  padding: 2rem 1.8rem;
+  background: linear-gradient(165deg, rgba(255, 243, 246, 0.09), rgba(74, 15, 48, 0.42));
+  border: 1px solid rgba(246, 217, 196, 0.35);
+  border-radius: 22px;
+  padding: 2.3rem 2rem;
   backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.1rem;
   text-align: center;
-  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 24px 50px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(246, 217, 196, 0.08);
+}
+.joke-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  padding: 1px;
+  background: linear-gradient(
+    140deg,
+    var(--gold-light),
+    transparent 35%,
+    transparent 65%,
+    var(--gold)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.joke-card-crest {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  justify-content: center;
+  opacity: 0.85;
+}
+.joke-card-crest-line {
+  height: 1px;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.joke-card-crest-icon {
+  font-size: 1rem;
 }
 .quiz-progress {
   color: var(--gold-light);
@@ -2164,7 +2999,7 @@ section {
   border-color: var(--gold);
   background: rgba(255, 255, 255, 0.09);
 }
-.rizz-why-btn {
+.joke-reveal-btn {
   padding: 0.85rem 2.2rem;
   font-size: 1rem;
   border-radius: 30px;
@@ -2173,11 +3008,11 @@ section {
   color: var(--gold-light);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
-.rizz-why-btn:hover {
+.joke-reveal-btn:hover {
   transform: translateY(-2px) scale(1.03);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
 }
-.rizz-line {
+.joke-line {
   font-family: 'Great Vibes', cursive;
   font-size: 1.7rem !important;
   line-height: 1.5;
@@ -2266,8 +3101,8 @@ section {
   box-shadow: 0 12px 22px rgba(0, 0, 0, 0.3);
 }
 @media (max-width: 520px) {
-  .quiz-card {
-    padding: 1.6rem 1.2rem;
+  .joke-card {
+    padding: 1.7rem 1.3rem;
   }
   .reward-slot {
     width: 38px;
@@ -2282,24 +3117,72 @@ section {
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 2.2rem 1.6rem;
   justify-items: center;
+  perspective: 1000px;
 }
 .polaroid {
+  position: relative;
   background: var(--paper);
   padding: 0.7rem 0.7rem 2rem;
   width: 190px;
   border-radius: 2px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
   cursor: pointer;
+  transform-style: preserve-3d;
   transition:
-    transform 0.3s ease,
+    transform 0.25s ease,
     box-shadow 0.3s ease;
 }
 .polaroid:hover {
-  transform: rotate(0deg) scale(1.05) !important;
   box-shadow: 0 18px 30px rgba(0, 0, 0, 0.45);
   z-index: 5;
 }
+.polaroid.is-liked {
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.35),
+    0 0 0 2px var(--gold);
+}
+.polaroid-like {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 3;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(30, 6, 20, 0.55);
+  color: #ffdfe6;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+.polaroid-like:hover {
+  transform: scale(1.15);
+}
+.polaroid-like.is-liked {
+  background: linear-gradient(135deg, var(--wine-soft), var(--wine));
+  color: #ff8fa8;
+  animation: likePop 0.4s ease;
+}
+@keyframes likePop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
 .polaroid .frame {
+  position: relative;
   width: 100%;
   aspect-ratio: 1/1;
   background: linear-gradient(135deg, var(--blush), #f0c6d4);
@@ -2320,14 +3203,39 @@ section {
   height: 34px;
   opacity: 0.55;
 }
+.frame-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(30, 6, 20, 0.32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.polaroid:hover .frame-overlay {
+  opacity: 1;
+}
+.frame-overlay-icon {
+  font-size: 1.4rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
 .polaroid figcaption {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35rem;
   text-align: center;
   font-family: 'Jost', sans-serif;
   font-size: 0.78rem;
   color: var(--ink);
   margin-top: 0.6rem;
   opacity: 0.75;
+}
+.polaroid-index {
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
 }
 
 /* ═══════════════════════════════════════════════
@@ -2807,7 +3715,9 @@ section {
   border-radius: 2px;
 }
 
-/* candle wish */
+/* ═══════════════════════════════════════════════
+   CAKE — premium two-tier drip cake
+═══════════════════════════════════════════════ */
 .cake-wrap {
   display: flex;
   flex-direction: column;
@@ -2815,14 +3725,76 @@ section {
   gap: 1.2rem;
 }
 .cake {
-  width: 220px;
-  max-width: 60vw;
+  width: 280px;
+  max-width: 74vw;
   cursor: pointer;
   overflow: visible;
+  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.45));
+}
+.cake-plate-shadow {
+  fill: rgba(0, 0, 0, 0.35);
+  filter: blur(4px);
+}
+.cake-plate-top {
+  fill: rgba(255, 255, 255, 0.28);
+}
+.frosting-drip {
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.12));
+}
+.ribbon-strip {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+}
+.cake-pearl {
+  fill: var(--gold-light);
+  opacity: 0.9;
+}
+.mini-rose-petal {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
+}
+.cake-name {
+  font-family: 'Great Vibes', cursive;
+  font-size: 27px;
+  fill: var(--gold-light);
+  paint-order: stroke;
+  stroke: rgba(74, 15, 48, 0.35);
+  stroke-width: 0.6px;
+}
+.cake-name-underline {
+  stroke: var(--gold-light);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+.cake-age {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  fill: var(--gold-light);
+  opacity: 0.92;
+}
+.candle-stripe {
+  fill: var(--wine-soft);
+  opacity: 0.55;
+}
+.candle-drip {
+  fill: #fff8f2;
+  opacity: 0.9;
+}
+.flame-glow {
+  fill: rgba(255, 184, 77, 0.35);
+  filter: blur(2px);
+  animation: flicker 1.4s ease-in-out infinite;
+  transform-origin: 0 -18px;
+}
+.flame-group {
+  transform-origin: 0 -18px;
 }
 .flame {
   animation: flicker 1.4s ease-in-out infinite;
-  transform-origin: 100px 34px;
+  transform-origin: 0 -18px;
+}
+.flame-core {
+  animation: flicker 1.4s ease-in-out infinite reverse;
+  transform-origin: 0 -10px;
 }
 @keyframes flicker {
   0%,
@@ -2887,6 +3859,9 @@ section {
   font-size: 1.1rem;
   color: var(--paper);
   opacity: 0.85;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 .modal-close {
   position: absolute;
@@ -2897,6 +3872,83 @@ section {
   color: var(--paper);
   font-size: 2rem;
   opacity: 0.85;
+  z-index: 32;
+}
+
+/* gallery lightbox extras: prev/next nav, counter, like button */
+.gallery-lightbox {
+  flex-direction: column;
+}
+.lightbox-fade {
+  animation: fadeIn 0.35s ease;
+}
+.lightbox-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(30, 6, 20, 0.55);
+  border: 1px solid rgba(246, 217, 196, 0.35);
+  color: var(--gold-light);
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+  z-index: 31;
+}
+.lightbox-nav:hover {
+  transform: translateY(-50%) scale(1.1);
+  background: rgba(140, 28, 77, 0.65);
+}
+.lightbox-prev {
+  left: 1.2rem;
+}
+.lightbox-next {
+  right: 1.2rem;
+}
+.lightbox-counter {
+  color: var(--gold-light);
+  opacity: 0.7;
+}
+.lightbox-like {
+  margin-top: 1rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  padding: 0.55rem 1.3rem;
+  border-radius: 30px;
+  border: 1px solid var(--gold);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--paper);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+.lightbox-like:hover {
+  transform: translateY(-2px);
+}
+.lightbox-like.is-liked {
+  background: linear-gradient(135deg, var(--wine-soft), var(--wine));
+  color: #ff8fa8;
+  border-color: var(--gold-light);
+}
+@media (max-width: 600px) {
+  .lightbox-nav {
+    width: 36px;
+    height: 36px;
+    font-size: 1.3rem;
+  }
+  .lightbox-prev {
+    left: 0.5rem;
+  }
+  .lightbox-next {
+    right: 0.5rem;
+  }
 }
 
 /* footer */
@@ -2914,6 +3966,11 @@ footer .script {
 }
 footer p {
   opacity: 0.75;
+}
+.footer-love-tally {
+  margin-top: 1rem;
+  color: var(--gold-light);
+  opacity: 0.9;
 }
 
 /* ═══════════════════════════════════════════════
@@ -3340,7 +4397,8 @@ footer p {
     font-size: 1.45rem;
   }
   .cake {
-    max-width: 72vw;
+    width: 240px;
+    max-width: 80vw;
   }
   .bouquet-reveal {
     width: 230px;
