@@ -298,89 +298,7 @@ const bouquetSparkles = [
   { x: 112, y: 58, r: 1.4, delay: 0.65 },
   { x: 190, y: 56, r: 1.4, delay: 1.1 },
 ]
-
-/* ============================================================
-   💌 TITO JOKES — "Reveal punchline"
-   A little corny game: each card teases a setup, she taps to
-   reveal the (groan-worthy, sweet) punchline. Collect them all
-   to unlock a bonus message.
-   ✏️ Edit the teaser/line pairs to match your own sense of humor.
-   ============================================================ */
-interface TitoJoke {
-  teaser: string
-  line: string
-  icon: string
-}
-
-const titoJokes = reactive<TitoJoke[]>([
-  {
-    teaser: "Why don't scientists trust atoms anymore?",
-    line: 'Because they make up literally everything — kind of like how you make up my entire world. 😂❤️',
-    icon: '⚛️',
-  },
-  {
-    teaser: 'What did the ocean say to the shore?',
-    line: 'Nothing, love — it just waved. 🌊 Kind of like how you wave hello and my whole heart grins like an idiot.',
-    icon: '🌊',
-  },
-  {
-    teaser: 'Why did the coffee file a police report?',
-    line: 'It got mugged! ☕ The only thing I want stolen around here is one more kiss from you.',
-    icon: '☕',
-  },
-  {
-    teaser: "Why don't eggs ever tell jokes?",
-    line: "They'd crack each other up. 🥚 You crack me up too — in the best, most annoying-in-a-cute-way possible.",
-    icon: '🥚',
-  },
-  {
-    teaser: "What do you call cheese that isn't yours?",
-    line: 'Nacho cheese! 🧀 …unlike my heart, which has always, only ever been yours.',
-    icon: '🧀',
-  },
-  {
-    teaser: "What's a tito's favorite kind of joke?",
-    line: 'The corny kind — a good pun is its own re-word. 😅 And loving you? Best reward I never even had to work for.',
-    icon: '😂',
-  },
-])
-
-const jokeIndex = ref(0)
-const jokeRevealed = ref(false)
-const jokesComplete = ref(false)
 const collectedIcons = reactive<string[]>([])
-
-// TS's noUncheckedIndexedAccess flags titoJokes[jokeIndex.value] as possibly
-// undefined even though the index is always in bounds by construction —
-// this computed gives every reader a guaranteed, non-undefined joke.
-const currentJoke = computed<TitoJoke>(
-  () => titoJokes[jokeIndex.value] ?? { teaser: '', line: '', icon: '' },
-)
-
-function revealJoke() {
-  if (jokeRevealed.value) return
-  jokeRevealed.value = true
-  collectedIcons.push(currentJoke.value.icon)
-  burstPetals(50)
-}
-
-function nextJoke() {
-  if (jokeIndex.value < titoJokes.length - 1) {
-    jokeIndex.value++
-    jokeRevealed.value = false
-  } else {
-    jokesComplete.value = true
-    burstPetals(46)
-  }
-}
-
-function resetJokes() {
-  jokeIndex.value = 0
-  jokeRevealed.value = false
-  jokesComplete.value = false
-  collectedIcons.splice(0, collectedIcons.length)
-}
-
 /* ============================================================
    💛 A little running tally of all the "love" collected across
    the page — gallery hearts, joke icons, and hero taps — shown
@@ -685,7 +603,6 @@ function updateScrollProgress() {
 const navDots = [
   { id: 'hero', label: 'Home', icon: '💌' },
   { id: 'wishes', label: 'Wishes', icon: '🎀' },
-  { id: 'jokes', label: 'Jokes', icon: '😂' },
   { id: 'gallery', label: 'Moments', icon: '📷' },
   { id: 'film', label: 'Film', icon: '🎬' },
   { id: 'wish', label: 'Wish', icon: '🕯️' },
@@ -1383,66 +1300,6 @@ const vReveal = {
             <p>{{ wish }}</p>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── TITO JOKES ── -->
-  <section id="jokes" v-reveal>
-    <div class="section-head">
-      <span class="corny-badge label">certified corny™</span>
-      <h2>Tito Jokes to make you smile</h2>
-      <p>tap the card to reveal the punchline — I make no apologies 😅</p>
-    </div>
-
-    <div class="joke-wrap">
-      <div class="reward-tray">
-        <div
-          class="reward-slot"
-          v-for="(c, i) in titoJokes"
-          :key="'slot' + i"
-          :class="{ 'is-filled': collectedIcons[i] }"
-        >
-          <span v-if="collectedIcons[i]">{{ collectedIcons[i] }}</span>
-          <span v-else class="reward-slot-empty">·</span>
-        </div>
-      </div>
-
-      <div class="joke-card" v-if="!jokesComplete">
-        <div class="joke-card-crest">
-          <span class="joke-card-crest-line"></span>
-          <span class="joke-card-crest-icon">🎙️</span>
-          <span class="joke-card-crest-line"></span>
-        </div>
-        <span class="quiz-progress label">Joke {{ jokeIndex + 1 }} of {{ titoJokes.length }}</span>
-        <h3 class="quiz-question">{{ currentJoke.teaser }}</h3>
-
-        <button class="quiz-option joke-reveal-btn" v-if="!jokeRevealed" @click="revealJoke">
-          Reveal punchline 🥁
-        </button>
-
-        <p class="quiz-feedback is-good joke-line" v-else>{{ currentJoke.line }}</p>
-
-        <button class="quiz-replay-btn" v-if="jokeRevealed" @click="nextJoke">
-          {{ jokeIndex < titoJokes.length - 1 ? 'Next joke →' : 'Finish' }}
-        </button>
-      </div>
-
-      <div class="joke-card quiz-complete" v-else>
-        <div class="quiz-complete-bouquet">
-          <span
-            v-for="(icon, i) in collectedIcons"
-            :key="'j' + i"
-            :style="{ animationDelay: i * 0.12 + 's' }"
-            >{{ icon }}</span
-          >
-        </div>
-        <span class="corny-badge label">tito-approved</span>
-        <h3 class="quiz-question">Okay, I'll retire from stand-up now 😂</h3>
-        <p class="quiz-complete-note">
-          Corny jokes aside — you smiling, even at these, is still my favorite thing in the world.
-        </p>
-        <button class="quiz-replay-btn" @click="resetJokes">Hear them again</button>
       </div>
     </div>
   </section>
